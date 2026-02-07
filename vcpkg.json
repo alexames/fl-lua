@@ -9,6 +9,8 @@
       "name": "imgui",
       "features": ["docking-experimental", "dx11-binding", "win32-binding"]
     },
+    "imgui-color-text-edit",
+    "vst3sdk",
     "readerwriterqueue",
     "fmt",
     "spdlog"

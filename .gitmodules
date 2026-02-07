@@ -1,6 +1,0 @@
-[submodule "libs/vst3sdk"]
-	path = libs/vst3sdk
-	url = https://github.com/steinbergmedia/vst3sdk.git
-[submodule "libs/ImGuiColorTextEdit"]
-	path = libs/ImGuiColorTextEdit
-	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git

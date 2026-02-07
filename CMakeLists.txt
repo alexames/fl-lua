@@ -17,8 +17,8 @@ if(MSVC)
   add_compile_options(/utf-8)
 endif()
 
-# --- VST3 SDK ---
-set(vst3sdk_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/vst3sdk")
+# --- VST3 SDK (source-distribution port via vcpkg) ---
+find_package(vst3sdk CONFIG REQUIRED)
 set(SMTG_ENABLE_VST3_HOSTING_EXAMPLES OFF)
 set(SMTG_ENABLE_VST3_PLUGIN_EXAMPLES OFF)
 set(SMTG_ENABLE_VSTGUI_SUPPORT OFF)
@@ -33,17 +33,10 @@ smtg_enable_vst3_sdk()
 find_package(lua55 CONFIG REQUIRED)
 find_package(luawrapper REQUIRED)
 find_package(imgui CONFIG REQUIRED)
+find_package(imgui-color-text-edit CONFIG REQUIRED)
 find_package(readerwriterqueue CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-
-# --- ImGuiColorTextEdit ---
-add_library(ImGuiColorTextEdit STATIC
-  libs/ImGuiColorTextEdit/TextEditor.cpp
-  libs/ImGuiColorTextEdit/TextEditor.h
-)
-target_include_directories(ImGuiColorTextEdit PUBLIC libs/ImGuiColorTextEdit)
-target_link_libraries(ImGuiColorTextEdit PUBLIC imgui::imgui)
 
 # --- Plugin sources ---
 set(FL_LUA_SOURCES
@@ -82,7 +75,7 @@ target_compile_features(FL-Lua PUBLIC cxx_std_23)
 target_link_libraries(FL-Lua PRIVATE
   sdk
   imgui::imgui
-  ImGuiColorTextEdit
+  imgui-color-text-edit::ImGuiColorTextEdit
   lua55::lua55
   luawrapper::luawrapper
   readerwriterqueue::readerwriterqueue
