@@ -1,0 +1,16 @@
+{
+  "name": "fl-lua",
+  "version-string": "0.1.0",
+  "description": "VST3 Lua scripting plugin for FL Studio",
+  "dependencies": [
+    "lua55",
+    "luawrapper",
+    {
+      "name": "imgui",
+      "features": ["docking-experimental", "dx11-binding", "win32-binding"]
+    },
+    "readerwriterqueue",
+    "fmt",
+    "spdlog"
+  ]
+}

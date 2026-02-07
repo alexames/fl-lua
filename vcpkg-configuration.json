@@ -1,0 +1,18 @@
+{
+  "default-registry": {
+    "kind": "git",
+    "baseline": "75a2e14262fc23c1f03bac18e135c4866dd25b51",
+    "repository": "https://github.com/microsoft/vcpkg"
+  },
+  "registries": [
+    {
+      "kind": "git",
+      "baseline": "7073c87f86e93d8dc66ef111e0a8c496bc7c5064",
+      "repository": "https://github.com/alexames/vcpkg-registry",
+      "packages": [
+        "lua55",
+        "luawrapper"
+      ]
+    }
+  ]
+}
