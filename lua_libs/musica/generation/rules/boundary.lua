@@ -3,8 +3,8 @@
 --- Rules for constraining the first and last notes of a figure.
 -- @module musica.generation.rules.boundary
 
-local llx = require 'llx'
-local rule_module = require 'musica.generation.rule'
+local llx = require('llx')
+local rule_module = require('musica.generation.rule')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -15,14 +15,14 @@ local Rule = rule_module.Rule
 
 --- Rule requiring the first note to have a specific pitch.
 -- @type StartOnPitchRule
-StartOnPitchRule = class 'StartOnPitchRule' : extends(Rule) {
+StartOnPitchRule = class('StartOnPitchRule'):extends(Rule)({
   --- Creates a new StartOnPitchRule.
   -- @tparam StartOnPitchRule self
   -- @tparam table args Configuration table
   -- @tparam Pitch args.pitch The required starting pitch
   -- @tparam[opt='start_on_pitch'] string args.name Rule name
   __init = function(self, args)
-    Rule.__init(self, {name = args.name or 'start_on_pitch'})
+    Rule.__init(self, { name = args.name or 'start_on_pitch' })
     self.pitch = args.pitch
   end,
 
@@ -37,8 +37,8 @@ StartOnPitchRule = class 'StartOnPitchRule' : extends(Rule) {
     end
     local first_pitch = figure.notes[1].pitch
     if tointeger(first_pitch) ~= tointeger(self.pitch) then
-      return false, string.format('First note is %s, expected %s',
-        first_pitch, self.pitch)
+      return false,
+        string.format('First note is %s, expected %s', first_pitch, self.pitch)
     end
     return true
   end,
@@ -55,18 +55,18 @@ StartOnPitchRule = class 'StartOnPitchRule' : extends(Rule) {
   __tostring = function(self)
     return string.format('StartOnPitchRule{pitch=%s}', self.pitch)
   end,
-}
+})
 
 --- Rule requiring the last note to have a specific pitch.
 -- @type EndOnPitchRule
-EndOnPitchRule = class 'EndOnPitchRule' : extends(Rule) {
+EndOnPitchRule = class('EndOnPitchRule'):extends(Rule)({
   --- Creates a new EndOnPitchRule.
   -- @tparam EndOnPitchRule self
   -- @tparam table args Configuration table
   -- @tparam Pitch args.pitch The required ending pitch
   -- @tparam[opt='end_on_pitch'] string args.name Rule name
   __init = function(self, args)
-    Rule.__init(self, {name = args.name or 'end_on_pitch'})
+    Rule.__init(self, { name = args.name or 'end_on_pitch' })
     self.pitch = args.pitch
   end,
 
@@ -81,8 +81,8 @@ EndOnPitchRule = class 'EndOnPitchRule' : extends(Rule) {
     end
     local last_pitch = figure.notes[#figure.notes].pitch
     if tointeger(last_pitch) ~= tointeger(self.pitch) then
-      return false, string.format('Last note is %s, expected %s',
-        last_pitch, self.pitch)
+      return false,
+        string.format('Last note is %s, expected %s', last_pitch, self.pitch)
     end
     return true
   end,
@@ -100,6 +100,6 @@ EndOnPitchRule = class 'EndOnPitchRule' : extends(Rule) {
   __tostring = function(self)
     return string.format('EndOnPitchRule{pitch=%s}', self.pitch)
   end,
-}
+})
 
 return _M

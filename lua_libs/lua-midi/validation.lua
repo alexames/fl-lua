@@ -18,7 +18,7 @@
 -- validation.assert_note(60)  -- OK
 -- validation.assert_note(128) -- Error!
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -85,7 +85,8 @@ function validate_controller(controller)
     return false, string.format('Controller must be 0-127, got %d', controller)
   end
   if controller ~= math.floor(controller) then
-    return false, string.format('Controller must be an integer, got %f', controller)
+    return false,
+      string.format('Controller must be an integer, got %f', controller)
   end
   return true
 end
@@ -148,7 +149,9 @@ end
 -- @raise error if channel is invalid
 function assert_channel(channel)
   local valid, err = validate_channel(channel)
-  if not valid then error(err, 2) end
+  if not valid then
+    error(err, 2)
+  end
 end
 
 --- Assert that a note is valid, throws error if not.
@@ -156,7 +159,9 @@ end
 -- @raise error if note is invalid
 function assert_note(note)
   local valid, err = validate_note(note)
-  if not valid then error(err, 2) end
+  if not valid then
+    error(err, 2)
+  end
 end
 
 --- Assert that a velocity is valid, throws error if not.
@@ -164,7 +169,9 @@ end
 -- @raise error if velocity is invalid
 function assert_velocity(velocity)
   local valid, err = validate_velocity(velocity)
-  if not valid then error(err, 2) end
+  if not valid then
+    error(err, 2)
+  end
 end
 
 --- Assert that a controller is valid, throws error if not.
@@ -172,7 +179,9 @@ end
 -- @raise error if controller is invalid
 function assert_controller(controller)
   local valid, err = validate_controller(controller)
-  if not valid then error(err, 2) end
+  if not valid then
+    error(err, 2)
+  end
 end
 
 --- Assert that a program is valid, throws error if not.
@@ -180,7 +189,9 @@ end
 -- @raise error if program is invalid
 function assert_program(program)
   local valid, err = validate_program(program)
-  if not valid then error(err, 2) end
+  if not valid then
+    error(err, 2)
+  end
 end
 
 --- Assert that a pitch bend value is valid, throws error if not.
@@ -188,7 +199,9 @@ end
 -- @raise error if pitch bend value is invalid
 function assert_pitch_bend(value)
   local valid, err = validate_pitch_bend(value)
-  if not valid then error(err, 2) end
+  if not valid then
+    error(err, 2)
+  end
 end
 
 return _M

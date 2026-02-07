@@ -24,9 +24,9 @@
 -- local new_song = midi_file.MidiFile{format=1, ticks=480}
 -- new_song:write('output.mid')
 
-local llx = require 'llx'
-local midi_io = require 'lua-midi.io'
-local midi_track = require 'lua-midi.track'
+local llx = require('llx')
+local midi_io = require('lua-midi.io')
+local midi_track = require('lua-midi.track')
 
 local _ENV, _M = llx.environment.create_module_environment()
 local class = llx.class
@@ -36,7 +36,7 @@ local class = llx.class
 -- @field format number Format type (0, 1, or 2)
 -- @field ticks number|table Number of ticks per beat, or SMPTE timing table
 -- @field tracks List List of Track objects
-MidiFile = class 'MidiFile' {
+MidiFile = class('MidiFile')({
   --- Create a new MidiFile.
   -- Accepts either positional arguments (format, ticks, tracks)
   -- or a single table with keys {format=, ticks=, tracks=}.
@@ -54,11 +54,11 @@ MidiFile = class 'MidiFile' {
     if type(args_or_format) == 'table' then
       self.format = args_or_format.format or 1
       self.ticks = args_or_format.ticks or 92
-      self.tracks = args_or_format.tracks or llx.List{}
+      self.tracks = args_or_format.tracks or llx.List({})
     else
       self.format = args_or_format or 1
       self.ticks = ticks or 92
-      self.tracks = tracks or llx.List{}
+      self.tracks = tracks or llx.List({})
     end
   end,
 
@@ -82,8 +82,8 @@ MidiFile = class 'MidiFile' {
       return self.ticks.frame_rate, self.ticks.ticks_per_frame
     elseif self.ticks < 0 then
       -- Parse from negative value
-      local frame_rate_code = (-self.ticks) >> 8
-      local ticks_per_frame = (-self.ticks) & 0xFF
+      local frame_rate_code = -self.ticks >> 8
+      local ticks_per_frame = -self.ticks & 0xFF
       local frame_rate_map = {
         [24] = 24,
         [25] = 25,
@@ -165,7 +165,11 @@ MidiFile = class 'MidiFile' {
   validate_format = function(self)
     -- Validate format number
     if self.format < 0 or self.format > 2 then
-      return false, string.format('Invalid format number: %d (must be 0, 1, or 2)', self.format)
+      return false,
+        string.format(
+          'Invalid format number: %d (must be 0, 1, or 2)',
+          self.format
+        )
     end
 
     local track_count = #self.tracks
@@ -173,10 +177,11 @@ MidiFile = class 'MidiFile' {
     -- Format 0: Must have exactly 1 track
     if self.format == 0 then
       if track_count ~= 1 then
-        return false, string.format(
-          'Format 0 requires exactly 1 track, but has %d track(s)',
-          track_count
-        )
+        return false,
+          string.format(
+            'Format 0 requires exactly 1 track, but has %d track(s)',
+            track_count
+          )
       end
     end
 
@@ -224,17 +229,20 @@ MidiFile = class 'MidiFile' {
   _read_file = function(file)
     local midi_file = MidiFile()
     assert(file:read(4) == 'MThd', 'Invalid MIDI file header')
-    assert(midi_io.readUInt32be(file) == 0x00000006, 'Invalid MIDI header length')
+    assert(
+      midi_io.readUInt32be(file) == 0x00000006,
+      'Invalid MIDI header length'
+    )
     midi_file.format = midi_io.readUInt16be(file)
     local tracks_count = midi_io.readUInt16be(file)
     local ticks_raw = midi_io.readUInt16be(file)
-    
+
     -- Check if SMPTE format (MSB set)
     if ticks_raw & 0x8000 ~= 0 then
       -- Convert to signed 16-bit
       local signed_ticks = ticks_raw - 65536
-      local frame_rate_code = (-signed_ticks) >> 8
-      local ticks_per_frame = (-signed_ticks) & 0xFF
+      local frame_rate_code = -signed_ticks >> 8
+      local ticks_per_frame = -signed_ticks & 0xFF
       local frame_rate_map = {
         [24] = 24,
         [25] = 25,
@@ -250,7 +258,7 @@ MidiFile = class 'MidiFile' {
     else
       midi_file.ticks = ticks_raw
     end
-    for i=1, tracks_count do
+    for i = 1, tracks_count do
       table.insert(midi_file.tracks, midi_track.Track.read(file))
     end
     return midi_file
@@ -282,17 +290,18 @@ MidiFile = class 'MidiFile' {
   _write_file = function(self, file)
     -- Validate format before writing
     self:assert_valid_format()
-    
+
     file:write('MThd')
     midi_io.writeUInt32be(file, 0x00000006)
     midi_io.writeUInt16be(file, self.format)
     midi_io.writeUInt16be(file, #self.tracks)
-    
+
     -- Write ticks (handle SMPTE format)
     if type(self.ticks) == 'table' and self.ticks.smpte then
       -- Convert to unsigned 16-bit for writing
       local signed_value = self.ticks.encoded
-      local unsigned_value = signed_value < 0 and (signed_value + 65536) or signed_value
+      local unsigned_value = signed_value < 0 and (signed_value + 65536)
+        or signed_value
       midi_io.writeUInt16be(file, unsigned_value)
     else
       midi_io.writeUInt16be(file, self.ticks)
@@ -330,7 +339,10 @@ MidiFile = class 'MidiFile' {
     end
     return string.format(
       'MidiFile{format=%d, ticks=%d, tracks={%s}}',
-      self.format, self.ticks, table.concat(tracks_strings, ', '))
+      self.format,
+      self.ticks,
+      table.concat(tracks_strings, ', ')
+    )
   end,
 
   --- Returns the binary contents of the MIDI file as a Lua string.
@@ -339,12 +351,14 @@ MidiFile = class 'MidiFile' {
   __tobytes = function(self)
     local buffer = {}
     local file = {
-      write = function(_, s) table.insert(buffer, s) end
+      write = function(_, s)
+        table.insert(buffer, s)
+      end,
     }
     self:_write_file(file)
     return table.concat(buffer)
   end,
-}
+})
 
 --- Type coercion function.
 -- Attempts to convert a value to a MidiFile using the __tomidifile metamethod.

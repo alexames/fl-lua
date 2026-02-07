@@ -1,8 +1,8 @@
-local bytestream = require 'bytestream'
-local constants = require 'constants'
-local instructions = require 'instructions'
-local opcodes = require 'opcodes'
-local typetags_module = require 'typetags'
+local bytestream = require('bytestream')
+local constants = require('constants')
+local instructions = require('instructions')
+local opcodes = require('opcodes')
+local typetags_module = require('typetags')
 
 local typetags = typetags_module.typetags
 
@@ -17,7 +17,7 @@ function load_code(proto, meta, bytestream)
   local sizecode = bytestream:read_varint()
   bytestream:read_align(meta.instruction_size)
   proto.code = {}
-  for i=1, sizecode do
+  for i = 1, sizecode do
     proto.code[i] = Instruction(bytestream:read_int32(), proto)
   end
 end
@@ -25,20 +25,24 @@ end
 function load_constants(proto, meta, bytestream)
   local k = {}
   proto.k = k
-  for i=1, bytestream:read_varint() do
+  for i = 1, bytestream:read_varint() do
     local typetag = bytestream:read_int8()
     if typetag == typetags.vnumflt.value then
       k[i] = bytestream:read_number()
     elseif typetag == typetags.vnumint.value then
       k[i] = bytestream:read_integer()
-    elseif typetag == typetags.vsrtstr.value
-           or typetag == typetags.vlngstr.value then
+    elseif
+      typetag == typetags.vsrtstr.value
+      or typetag == typetags.vlngstr.value
+    then
       k[i] = load_string(proto, meta, bytestream)
     else
-      assert(typetags[typetag] == typetags.tnil
-             or typetags[typetag] == typetags.vtrue
-             or typetags[typetag] == typetags.vfalse,
-             string.format('typetag was %s (0x%X)', typetags[typetag], typetag))
+      assert(
+        typetags[typetag] == typetags.tnil
+          or typetags[typetag] == typetags.vtrue
+          or typetags[typetag] == typetags.vfalse,
+        string.format('typetag was %s (0x%X)', typetags[typetag], typetag)
+      )
     end
   end
 end
@@ -46,7 +50,7 @@ end
 function load_upvalues(proto, meta, bytestream)
   local upvalues = {}
   proto.upvalues = upvalues
-  for i=1, bytestream:read_varint() do
+  for i = 1, bytestream:read_varint() do
     upvalues[i] = {
       instack = bytestream:read_int8(),
       idx = bytestream:read_int8(),
@@ -57,7 +61,7 @@ end
 
 function load_protos(proto, meta, bytestream)
   proto.p = {}
-  for i=1, bytestream:read_varint() do
+  for i = 1, bytestream:read_varint() do
     local p = {}
     proto.p[i] = p
     load_function(p, meta, bytestream)
@@ -87,11 +91,11 @@ function read_debug(proto, meta, bytestream)
   if proto.sizeabslineinfo > 0 then
     -- 'abslineinfo' is an array of structures of int's
     bytestream:read_align(meta.integer_size)
-    proto.abslineinfo = bytestream:read_byte_vector(
-      proto.sizelineinfo * meta.integer_size)
+    proto.abslineinfo =
+      bytestream:read_byte_vector(proto.sizelineinfo * meta.integer_size)
   end
   proto.locvars = {}
-  for i=1, bytestream:read_varint() do
+  for i = 1, bytestream:read_varint() do
     proto.locvars[i] = {
       varname = load_string(proto, meta, bytestream),
       startpc = bytestream:read_varint(),
@@ -99,9 +103,9 @@ function read_debug(proto, meta, bytestream)
     }
   end
   proto.upvalues = {}
-  for i=1, bytestream:read_varint() do
+  for i = 1, bytestream:read_varint() do
     proto.upvalues[i] = {
-      name = load_string(proto, meta, bytestream)
+      name = load_string(proto, meta, bytestream),
     }
   end
 end
@@ -139,7 +143,7 @@ end
 
 function read_bytes(bytes)
   local proto = {}
-  local meta = {strings={}}
+  local meta = { strings = {} }
   local bytestream = bytestream.ByteStream(bytes)
   load_header(proto, meta, bytestream)
   local sizeupvalues = bytestream:read_int8()

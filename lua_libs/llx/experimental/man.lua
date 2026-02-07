@@ -3,19 +3,19 @@
 function description(v)
   return {
     type = 'description',
-    value = v
+    value = v,
   }
 end
 function arguments(v)
   return {
     type = 'arguments',
-    value = v
+    value = v,
   }
 end
 function returns(v)
   return {
     type = 'returns',
-    value = v
+    value = v,
   }
 end
 argument = setmetatable({}, {
@@ -27,12 +27,12 @@ argument = setmetatable({}, {
         description = description,
       }
     end
-  end
+  end,
 })
 function returnvalue(v)
   return {
     type = 'returnvalue',
-    value = v
+    value = v,
   }
 end
 
@@ -41,7 +41,7 @@ function documentation(doctable)
   local info = debug.getinfo(2, 'nf')
   local func = info.func
   local name = info.name
-  local function_docs = {name=name}
+  local function_docs = { name = name }
   documentation_table[func] = function_docs
   for i, v in pairs(doctable) do
     local type = v.type
@@ -74,16 +74,16 @@ function describe(func, describer)
 end
 
 function add(lhs, rhs)
-  documentation {
-    description 'A function that adds two numbers',
-    arguments {
-      argument: lhs 'The left hand side of the equation',
-      argument: rhs 'The right hand side of the equation',
-    },
-    returns {
-      returnvalue 'The sum of the two operands',
-    }
-  }
+  documentation({
+    description('A function that adds two numbers'),
+    arguments({
+      argument:lhs('The left hand side of the equation'),
+      argument:rhs('The right hand side of the equation'),
+    }),
+    returns({
+      returnvalue('The sum of the two operands'),
+    }),
+  })
   return lhs + rhs
 end
 

@@ -3,7 +3,7 @@
 --
 -- @module unit.matchers
 
-local llx = require 'llx'
+local llx = require('llx')
 local isinstance = llx.isinstance
 
 --- Converts a table to a formatted string for display.
@@ -28,14 +28,17 @@ function negate(predicate)
   return function(actual)
     local result = predicate(actual)
     if type(result) ~= 'table' or result.pass == nil then
-      error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', 2)
+      error(
+        'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+        2
+      )
     end
     return {
       pass = not result.pass,
       actual = result.actual,
       positive_message = result.negative_message,
       negative_message = result.positive_message,
-      expected = result.expected
+      expected = result.expected,
     }
   end
 end
@@ -48,7 +51,7 @@ function equals(expected)
       actual = tostring(actual),
       positive_message = 'be equal to',
       negative_message = 'be not equal to',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -61,7 +64,7 @@ function greater_than(expected)
       actual = tostring(actual),
       positive_message = 'be greater than',
       negative_message = 'be not greater than',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -74,7 +77,7 @@ function greater_than_or_equal(expected)
       actual = tostring(actual),
       positive_message = 'be greater than or equal to',
       negative_message = 'be not greater than or equal to',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -87,7 +90,7 @@ function less_than(expected)
       actual = tostring(actual),
       positive_message = 'be less than',
       negative_message = 'be not less than',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -100,7 +103,7 @@ function less_than_or_equal(expected)
       actual = tostring(actual),
       positive_message = 'be less than or equal to',
       negative_message = 'be not less than or equal to',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -113,7 +116,7 @@ function starts_with(expected)
       actual = tostring(actual),
       positive_message = 'start with',
       negative_message = 'not start with',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -126,7 +129,7 @@ function ends_with(expected)
       actual = tostring(actual),
       positive_message = 'end with',
       negative_message = 'not end with',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -139,7 +142,7 @@ function is_of_type(expected)
       actual = tostring(actual),
       positive_message = 'be of type',
       negative_message = 'not be of type',
-      expected = tostring(expected)
+      expected = tostring(expected),
     }
   end
 end
@@ -153,11 +156,14 @@ function listwise(predicate_generator, expected)
     local msg
     local act_list, exp_list = {}, {}
     local largest_len = math.max(#actual, #expected)
-    for i=1, largest_len do
+    for i = 1, largest_len do
       local predicate = predicate_generator(expected[i])
       local local_result = predicate(actual[i])
       if type(local_result) ~= 'table' or local_result.pass == nil then
-        error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', 2)
+        error(
+          'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+          2
+        )
       end
       local pass = local_result.pass
       local act = local_result.actual
@@ -171,14 +177,14 @@ function listwise(predicate_generator, expected)
       actual = '{' .. (','):join(act_list) .. '}',
       positive_message = msg .. ' the value at every index of',
       negative_message = 'not to ' .. msg .. ' the value at every index of',
-      expected = '{' .. (','):join(exp_list) .. '}'
+      expected = '{' .. (','):join(exp_list) .. '}',
     }
   end
 end
 
 --- Gathers keys from multiple tables.
 local function collect_keys(out, ...)
-  for _, t in ipairs{...} do
+  for _, t in ipairs({ ... }) do
     for k in pairs(t) do
       out[k] = true
     end
@@ -198,7 +204,10 @@ function tablewise(predicate_generator, expected)
       local predicate = predicate_generator(expected[k])
       local local_result = predicate(actual[k])
       if type(local_result) ~= 'table' or local_result.pass == nil then
-        error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', 2)
+        error(
+          'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+          2
+        )
       end
       local pass = local_result.pass
       msg = local_result.positive_message
@@ -209,7 +218,7 @@ function tablewise(predicate_generator, expected)
       actual = table_to_string(actual),
       positive_message = msg .. ' the value at every key of',
       negative_message = 'not to ' .. msg .. ' the value at every key of',
-      expected = table_to_string(expected)
+      expected = table_to_string(expected),
     }
   end
 end
@@ -222,8 +231,11 @@ function near(expected, epsilon)
       pass = diff <= epsilon,
       actual = tostring(actual),
       positive_message = string.format('be within %s of', tostring(epsilon)),
-      negative_message = string.format('not be within %s of', tostring(epsilon)),
-      expected = tostring(expected)
+      negative_message = string.format(
+        'not be within %s of',
+        tostring(epsilon)
+      ),
+      expected = tostring(expected),
     }
   end
 end
@@ -237,7 +249,7 @@ function is_nan()
       actual = tostring(actual),
       positive_message = 'be NaN',
       negative_message = 'not be NaN',
-      expected = 'NaN'
+      expected = 'NaN',
     }
   end
 end
@@ -250,7 +262,7 @@ function is_positive()
       actual = tostring(actual),
       positive_message = 'be positive',
       negative_message = 'not be positive',
-      expected = '> 0'
+      expected = '> 0',
     }
   end
 end
@@ -263,7 +275,7 @@ function is_negative()
       actual = tostring(actual),
       positive_message = 'be negative',
       negative_message = 'not be negative',
-      expected = '< 0'
+      expected = '< 0',
     }
   end
 end
@@ -274,9 +286,17 @@ function is_between(min, max)
     return {
       pass = actual >= min and actual <= max,
       actual = tostring(actual),
-      positive_message = string.format('be between %s and %s', tostring(min), tostring(max)),
-      negative_message = string.format('not be between %s and %s', tostring(min), tostring(max)),
-      expected = string.format('[%s, %s]', tostring(min), tostring(max))
+      positive_message = string.format(
+        'be between %s and %s',
+        tostring(min),
+        tostring(max)
+      ),
+      negative_message = string.format(
+        'not be between %s and %s',
+        tostring(min),
+        tostring(max)
+      ),
+      expected = string.format('[%s, %s]', tostring(min), tostring(max)),
     }
   end
 end
@@ -290,7 +310,7 @@ function contains(substring)
         actual = tostring(actual) .. ' (type: ' .. type(actual) .. ')',
         positive_message = 'contain',
         negative_message = 'not contain',
-        expected = 'string containing: ' .. tostring(substring)
+        expected = 'string containing: ' .. tostring(substring),
       }
     end
     local contains = actual:find(substring, 1, true) ~= nil
@@ -299,7 +319,7 @@ function contains(substring)
       actual = tostring(actual),
       positive_message = 'contain',
       negative_message = 'not contain',
-      expected = tostring(substring)
+      expected = tostring(substring),
     }
   end
 end
@@ -313,7 +333,7 @@ function matches(pattern)
       actual = tostring(actual),
       positive_message = 'match pattern',
       negative_message = 'not match pattern',
-      expected = tostring(pattern)
+      expected = tostring(pattern),
     }
   end
 end
@@ -332,7 +352,7 @@ function is_empty()
       actual = tostring(actual),
       positive_message = 'be empty',
       negative_message = 'not be empty',
-      expected = '{} or ""'
+      expected = '{} or ""',
     }
   end
 end
@@ -346,7 +366,7 @@ function has_length(n)
       actual = tostring(actual),
       positive_message = 'have length',
       negative_message = 'not have length',
-      expected = tostring(n)
+      expected = tostring(n),
     }
   end
 end
@@ -365,7 +385,7 @@ function has_size(n)
       actual = tostring(actual),
       positive_message = 'have size',
       negative_message = 'not have size',
-      expected = tostring(n)
+      expected = tostring(n),
     }
   end
 end
@@ -387,19 +407,22 @@ function contains_element(element)
       actual = tostring(actual),
       positive_message = 'contain element',
       negative_message = 'not contain element',
-      expected = tostring(element)
+      expected = tostring(element),
     }
   end
 end
 
 --- Checks if all matchers pass
 function all_of(...)
-  local matchers = {...}
+  local matchers = { ... }
   return function(actual)
     for _, matcher in ipairs(matchers) do
       local result = matcher(actual)
       if type(result) ~= 'table' or result.pass == nil then
-        error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', 2)
+        error(
+          'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+          2
+        )
       end
       if not result.pass then
         return {
@@ -407,7 +430,7 @@ function all_of(...)
           actual = tostring(actual),
           positive_message = 'match all conditions',
           negative_message = 'not match all conditions',
-          expected = 'all matchers'
+          expected = 'all matchers',
         }
       end
     end
@@ -416,19 +439,22 @@ function all_of(...)
       actual = tostring(actual),
       positive_message = 'match all conditions',
       negative_message = 'not match all conditions',
-      expected = 'all matchers'
+      expected = 'all matchers',
     }
   end
 end
 
 --- Checks if any matcher passes
 function any_of(...)
-  local matchers = {...}
+  local matchers = { ... }
   return function(actual)
     for _, matcher in ipairs(matchers) do
       local result = matcher(actual)
       if type(result) ~= 'table' or result.pass == nil then
-        error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', 2)
+        error(
+          'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+          2
+        )
       end
       if result.pass then
         return {
@@ -436,7 +462,7 @@ function any_of(...)
           actual = tostring(actual),
           positive_message = 'match any condition',
           negative_message = 'not match any condition',
-          expected = 'any matcher'
+          expected = 'any matcher',
         }
       end
     end
@@ -445,19 +471,22 @@ function any_of(...)
       actual = tostring(actual),
       positive_message = 'match any condition',
       negative_message = 'not match any condition',
-      expected = 'any matcher'
+      expected = 'any matcher',
     }
   end
 end
 
 --- Checks if none of the matchers pass
 function none_of(...)
-  local matchers = {...}
+  local matchers = { ... }
   return function(actual)
     for _, matcher in ipairs(matchers) do
       local result = matcher(actual)
       if type(result) ~= 'table' or result.pass == nil then
-        error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', 2)
+        error(
+          'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+          2
+        )
       end
       if result.pass then
         return {
@@ -465,7 +494,7 @@ function none_of(...)
           actual = tostring(actual),
           positive_message = 'match none of the conditions',
           negative_message = 'match at least one condition',
-          expected = 'no matchers'
+          expected = 'no matchers',
         }
       end
     end
@@ -474,7 +503,7 @@ function none_of(...)
       actual = tostring(actual),
       positive_message = 'match none of the conditions',
       negative_message = 'match at least one condition',
-      expected = 'no matchers'
+      expected = 'no matchers',
     }
   end
 end
@@ -491,31 +520,40 @@ function is_instance_of(expected_class)
         actual = tostring(actual),
         positive_message = 'be instance of',
         negative_message = 'not be instance of',
-        expected = tostring(expected_class)
+        expected = tostring(expected_class),
       }
     end
 
     -- Fallback: check metatable
     local mt = getmetatable(actual)
-    local is_instance = mt == expected_class or (mt and mt.__isinstance and mt:__isinstance(actual))
+    local is_instance = mt == expected_class
+      or (mt and mt.__isinstance and mt:__isinstance(actual))
     return {
       pass = is_instance,
       actual = tostring(actual),
       positive_message = 'be instance of',
       negative_message = 'not be instance of',
-      expected = tostring(expected_class)
+      expected = tostring(expected_class),
     }
   end
 end
 
 --- Deep equality check for tables
 local function deep_equals(a, b, visited)
-  if a == b then return true end
-  if type(a) ~= type(b) then return false end
-  if type(a) ~= 'table' then return false end
+  if a == b then
+    return true
+  end
+  if type(a) ~= type(b) then
+    return false
+  end
+  if type(a) ~= 'table' then
+    return false
+  end
 
   visited = visited or {}
-  if visited[a] then return visited[a] == b end
+  if visited[a] then
+    return visited[a] == b
+  end
   visited[a] = b
 
   -- Check all keys in a
@@ -544,7 +582,7 @@ function match_table(expected)
         actual = tostring(actual) .. ' (type: ' .. type(actual) .. ')',
         positive_message = 'deeply equal',
         negative_message = 'not deeply equal',
-        expected = table_to_string(expected)
+        expected = table_to_string(expected),
       }
     end
 
@@ -554,7 +592,7 @@ function match_table(expected)
       actual = table_to_string(actual),
       positive_message = 'deeply equal',
       negative_message = 'not deeply equal',
-      expected = table_to_string(expected)
+      expected = table_to_string(expected),
     }
   end
 end
@@ -568,7 +606,11 @@ function have_property(key, expected_value)
         actual = tostring(actual) .. ' (type: ' .. type(actual) .. ')',
         positive_message = 'have property',
         negative_message = 'not have property',
-        expected = string.format('%s = %s', tostring(key), tostring(expected_value))
+        expected = string.format(
+          '%s = %s',
+          tostring(key),
+          tostring(expected_value)
+        ),
       }
     end
 
@@ -577,10 +619,14 @@ function have_property(key, expected_value)
 
     return {
       pass = has_key and value_matches,
-      actual = has_key and string.format('%s = %s', tostring(key), tostring(actual[key])) or 'property not found',
+      actual = has_key
+          and string.format('%s = %s', tostring(key), tostring(actual[key]))
+        or 'property not found',
       positive_message = 'have property',
       negative_message = 'not have property',
-      expected = expected_value and string.format('%s = %s', tostring(key), tostring(expected_value)) or tostring(key)
+      expected = expected_value
+          and string.format('%s = %s', tostring(key), tostring(expected_value))
+        or tostring(key),
     }
   end
 end
@@ -594,19 +640,26 @@ function respond_to(method_name)
         actual = tostring(actual) .. ' (type: ' .. type(actual) .. ')',
         positive_message = 'respond to',
         negative_message = 'not respond to',
-        expected = 'method: ' .. tostring(method_name)
+        expected = 'method: ' .. tostring(method_name),
       }
     end
 
     local method = actual[method_name]
-    local is_callable = type(method) == 'function' or (type(method) == 'table' and getmetatable(method) and getmetatable(method).__call)
+    local is_callable = type(method) == 'function'
+      or (
+        type(method) == 'table'
+        and getmetatable(method)
+        and getmetatable(method).__call
+      )
 
     return {
       pass = is_callable,
-      actual = method and string.format('has %s (%s)', tostring(method_name), type(method)) or 'method not found',
+      actual = method
+          and string.format('has %s (%s)', tostring(method_name), type(method))
+        or 'method not found',
       positive_message = 'respond to',
       negative_message = 'not respond to',
-      expected = 'callable method: ' .. tostring(method_name)
+      expected = 'callable method: ' .. tostring(method_name),
     }
   end
 end
@@ -620,14 +673,14 @@ function be_a(type_name)
       actual = actual_type,
       positive_message = 'be of type',
       negative_message = 'not be of type',
-      expected = type_name
+      expected = type_name,
     }
   end
 end
 
 --- Checks if table has all specified keys
 function have_keys(...)
-  local expected_keys = {...}
+  local expected_keys = { ... }
   return function(actual)
     if type(actual) ~= 'table' then
       return {
@@ -635,7 +688,7 @@ function have_keys(...)
         actual = tostring(actual) .. ' (type: ' .. type(actual) .. ')',
         positive_message = 'have keys',
         negative_message = 'not have keys',
-        expected = table.concat(expected_keys, ', ')
+        expected = table.concat(expected_keys, ', '),
       }
     end
 
@@ -648,10 +701,12 @@ function have_keys(...)
 
     return {
       pass = #missing_keys == 0,
-      actual = #missing_keys > 0 and 'missing: ' .. table.concat(missing_keys, ', ') or 'has all keys',
+      actual = #missing_keys > 0
+          and 'missing: ' .. table.concat(missing_keys, ', ')
+        or 'has all keys',
       positive_message = 'have keys',
       negative_message = 'not have keys',
-      expected = table.concat(expected_keys, ', ')
+      expected = table.concat(expected_keys, ', '),
     }
   end
 end
@@ -665,7 +720,7 @@ function be_even()
         actual = tostring(actual) .. ' (type: ' .. type(actual) .. ')',
         positive_message = 'be even',
         negative_message = 'be odd',
-        expected = 'even number'
+        expected = 'even number',
       }
     end
 
@@ -674,7 +729,7 @@ function be_even()
       actual = tostring(actual),
       positive_message = 'be even',
       negative_message = 'be odd',
-      expected = 'even number'
+      expected = 'even number',
     }
   end
 end
@@ -688,7 +743,7 @@ function be_odd()
         actual = tostring(actual) .. ' (type: ' .. type(actual) .. ')',
         positive_message = 'be odd',
         negative_message = 'be even',
-        expected = 'odd number'
+        expected = 'odd number',
       }
     end
 
@@ -697,43 +752,43 @@ function be_odd()
       actual = tostring(actual),
       positive_message = 'be odd',
       negative_message = 'be even',
-      expected = 'odd number'
+      expected = 'odd number',
     }
   end
 end
 
 return {
-  negate=negate,
-  equals=equals,
-  greater_than=greater_than,
-  greater_than_or_equal=greater_than_or_equal,
-  less_than=less_than,
-  less_than_or_equal=less_than_or_equal,
-  starts_with=starts_with,
-  ends_with=ends_with,
-  is_of_type=is_of_type,
-  listwise=listwise,
-  tablewise=tablewise,
-  near=near,
-  is_nan=is_nan,
-  is_positive=is_positive,
-  is_negative=is_negative,
-  is_between=is_between,
-  contains=contains,
-  matches=matches,
-  is_empty=is_empty,
-  has_length=has_length,
-  has_size=has_size,
-  contains_element=contains_element,
-  all_of=all_of,
-  any_of=any_of,
-  none_of=none_of,
-  is_instance_of=is_instance_of,
-  match_table=match_table,
-  have_property=have_property,
-  respond_to=respond_to,
-  be_a=be_a,
-  have_keys=have_keys,
-  be_even=be_even,
-  be_odd=be_odd,
+  negate = negate,
+  equals = equals,
+  greater_than = greater_than,
+  greater_than_or_equal = greater_than_or_equal,
+  less_than = less_than,
+  less_than_or_equal = less_than_or_equal,
+  starts_with = starts_with,
+  ends_with = ends_with,
+  is_of_type = is_of_type,
+  listwise = listwise,
+  tablewise = tablewise,
+  near = near,
+  is_nan = is_nan,
+  is_positive = is_positive,
+  is_negative = is_negative,
+  is_between = is_between,
+  contains = contains,
+  matches = matches,
+  is_empty = is_empty,
+  has_length = has_length,
+  has_size = has_size,
+  contains_element = contains_element,
+  all_of = all_of,
+  any_of = any_of,
+  none_of = none_of,
+  is_instance_of = is_instance_of,
+  match_table = match_table,
+  have_property = have_property,
+  respond_to = respond_to,
+  be_a = be_a,
+  have_keys = have_keys,
+  be_even = be_even,
+  be_odd = be_odd,
 }

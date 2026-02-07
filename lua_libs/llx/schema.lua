@@ -1,10 +1,10 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local environment = require 'llx.environment'
-local exceptions = require 'llx.exceptions'
-local getclass_module = require 'llx.getclass'
-local isinstance_module = require 'llx.isinstance'
-local list = require 'llx.types.list'
+local environment = require('llx.environment')
+local exceptions = require('llx.exceptions')
+local getclass_module = require('llx.getclass')
+local isinstance_module = require('llx.isinstance')
+local list = require('llx.types.list')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -21,8 +21,13 @@ local function check_field(schema, value, path, level)
 
   -- Validate that the value is of the correct type.
   if not isinstance(value, schema_type) then
-    return false, exceptions.SchemaFieldTypeMismatchException(
-        path, schema_type, getclass(value), level + 1)
+    return false,
+      exceptions.SchemaFieldTypeMismatchException(
+        path,
+        schema_type,
+        getclass(value),
+        level + 1
+      )
   end
 
   -- Validate that the per-type schema check passes.
@@ -30,7 +35,7 @@ local function check_field(schema, value, path, level)
 
   if __validate then
     local successful, exception =
-        __validate(value, schema, path, level + 1, check_field)
+      __validate(value, schema, path, level + 1, check_field)
     if not successful then
       return successful, exception
     end
@@ -66,7 +71,11 @@ function Schema(schema)
   end
 
   schema.__name = schema.__name or schema.title or 'Schema'
-  setmetatable(schema, {__tostring=function(self) return self.__name end})
+  setmetatable(schema, {
+    __tostring = function(self)
+      return self.__name
+    end,
+  })
 
   return schema
 end

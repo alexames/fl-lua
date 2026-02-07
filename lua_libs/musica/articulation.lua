@@ -1,38 +1,38 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
-local enum_module = require 'llx.enum'
+local enum_module = require('llx.enum')
 local enum = enum_module.enum
 
 --- Articulation enum representing different ways to play notes
-Articulation = enum {
+Articulation = enum({
   -- Normal articulation (no modification)
   'normal',
-  
+
   -- Staccato: Short, detached (50% duration)
   'staccato',
-  
+
   -- Staccatissimo: Very short, very detached (25% duration)
   'staccatissimo',
-  
+
   -- Legato: Smooth, connected (100% duration, overlapping)
   'legato',
-  
+
   -- Tenuto: Full value, slight emphasis (100% duration, +10% volume)
   'tenuto',
-  
+
   -- Accent: Emphasized (100% duration, +20% volume)
   'accent',
-  
+
   -- Marcato: Strongly accented (100% duration, +40% volume)
   'marcato',
-  
+
   -- Portato/Mezzo-staccato: Half-detached (75% duration)
   'portato',
-}
+})
 
 --- Get duration multiplier for an articulation
 -- @param articulation Articulation enum value
@@ -55,13 +55,13 @@ end
 -- @return Volume multiplier (1.0 = no change)
 function get_volume_multiplier(articulation)
   if articulation == Articulation.tenuto then
-    return 1.1  -- +10%
+    return 1.1 -- +10%
   elseif articulation == Articulation.accent then
-    return 1.2  -- +20%
+    return 1.2 -- +20%
   elseif articulation == Articulation.marcato then
-    return 1.4  -- +40%
+    return 1.4 -- +40%
   else
-    return 1.0  -- No change
+    return 1.0 -- No change
   end
 end
 
@@ -72,7 +72,7 @@ end
 function apply_to_note(note, articulation)
   local duration_mult = get_duration_multiplier(articulation)
   local volume_mult = get_volume_multiplier(articulation)
-  
+
   note.duration = note.duration * duration_mult
   note.volume = math.min(1.0, note.volume * volume_mult)
   note.articulation = articulation

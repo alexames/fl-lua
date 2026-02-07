@@ -1,33 +1,40 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local class = require 'llx.class' . class
-local environment = require 'llx.environment'
-local Exception = require 'llx.exceptions.exception' . Exception
+local class = require('llx.class').class
+local environment = require('llx.environment')
+local Exception = require('llx.exceptions.exception').Exception
 
 local _ENV, _M = environment.create_module_environment()
 
 InvalidArgumentException =
-    class 'InvalidArgumentException' : extends(Exception) {
-  __init = function(self, argument_index, failure_reason, level)
-    local what =
+  class('InvalidArgumentException'):extends(Exception)({
+    __init = function(self, argument_index, failure_reason, level)
+      local what =
         string.format('bad argument #%s:\n  %s', argument_index, failure_reason)
-    Exception.__init(self, what, (level or 1) + 1)
-  end,
+      Exception.__init(self, what, (level or 1) + 1)
+    end,
 
-  __tostring = Exception.__tostring, -- Fix this.
-}
+    __tostring = Exception.__tostring, -- Fix this.
+  })
 
 InvalidArgumentTypeException =
-    class 'InvalidArgumentTypeException' : extends(InvalidArgumentException) {
-  __init = function(self, argument_index, expected_type, actual_type, level)
-    local actual_type_name = actual_type.__name or tostring(actual_type)
-    local failure_reason =
-        string.format('%s expected, got %s', expected_type.__name, actual_type_name)
-    InvalidArgumentException.__init(
-        self, argument_index, failure_reason, (level or 1) + 1)
-  end,
+  class('InvalidArgumentTypeException'):extends(InvalidArgumentException)({
+    __init = function(self, argument_index, expected_type, actual_type, level)
+      local actual_type_name = actual_type.__name or tostring(actual_type)
+      local failure_reason = string.format(
+        '%s expected, got %s',
+        expected_type.__name,
+        actual_type_name
+      )
+      InvalidArgumentException.__init(
+        self,
+        argument_index,
+        failure_reason,
+        (level or 1) + 1
+      )
+    end,
 
-  __tostring = InvalidArgumentException.__tostring, -- Fix this.
-}
+    __tostring = InvalidArgumentException.__tostring, -- Fix this.
+  })
 
 return _M

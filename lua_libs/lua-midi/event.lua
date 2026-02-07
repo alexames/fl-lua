@@ -33,8 +33,8 @@
 -- -- Create a note off event 480 ticks later
 -- local note_off = event.NoteEndEvent(480, 0, 60, 0)
 
-local llx = require 'llx'
-local midi_io = require 'lua-midi.io'
+local llx = require('llx')
+local midi_io = require('lua-midi.io')
 
 local _ENV, _M = llx.environment.create_module_environment()
 local class = llx.class
@@ -42,7 +42,7 @@ local class = llx.class
 --- TimedEvent: Base class for all MIDI events with a time delta.
 -- @type TimedEvent
 -- @field time_delta number Delta time in ticks since the previous event
-TimedEvent = class 'TimedEvent' {
+TimedEvent = class('TimedEvent')({
   --- Create a new TimedEvent.
   -- @function TimedEvent:__init
   -- @param time_delta number Delta time in ticks since the previous event
@@ -74,7 +74,7 @@ TimedEvent = class 'TimedEvent' {
       midi_io.writeUInt8be(file, (time_delta >> 21) | 0x80)
     elseif time_delta > (0x7F * 0x7F) then
       midi_io.writeUInt8be(file, (time_delta >> 14) | 0x80)
-    elseif time_delta > (0x7F) then
+    elseif time_delta > 0x7F then
       midi_io.writeUInt8be(file, (time_delta >> 7) | 0x80)
     end
     -- Final byte (MSB = 0)
@@ -84,8 +84,7 @@ TimedEvent = class 'TimedEvent' {
   --- Read an event from file (placeholder for derived classes).
   -- @param file file Binary input file handle
   -- @local
-  read = function(file)
-  end,
+  read = function(file) end,
 
   --- Write the event to file (default: only writes time delta).
   -- @function TimedEvent:write
@@ -93,7 +92,7 @@ TimedEvent = class 'TimedEvent' {
   write = function(self, file)
     TimedEvent._write_event_time(file, self.time_delta)
   end,
-}
+})
 
 --- Event: Base class for channel voice messages.
 -- Channel voice messages include note on/off, control changes, program changes, etc.
@@ -102,7 +101,7 @@ TimedEvent = class 'TimedEvent' {
 -- @field time_delta number Delta time in ticks since the previous event
 -- @field channel number MIDI channel (0-15)
 -- @field command number Command byte (0x80-0xF0)
-Event = class 'Event' {
+Event = class('Event')({
   --- Create a new Event.
   -- @function Event:__init
   -- @param time_delta number Delta time in ticks since the previous event
@@ -172,14 +171,17 @@ Event = class 'Event' {
     TimedEvent._write_event_time(file, self.time_delta)
     local command_byte = self.command | self.channel
 
-    if command_byte ~= context.previous_command_byte or self.command == 0xF0 then
+    if
+      command_byte ~= context.previous_command_byte or self.command == 0xF0
+    then
       midi_io.writeUInt8be(file, command_byte)
       context.previous_command_byte = command_byte
     end
 
     if self.schema then
       for _, field in ipairs(self.schema) do
-        local byte = assert(self[field], string.format('No field %s on Event', field))
+        local byte =
+          assert(self[field], string.format('No field %s on Event', field))
         midi_io.writeUInt8be(file, byte)
       end
     end
@@ -191,13 +193,18 @@ Event = class 'Event' {
     local argument_strings = { self.time_delta, self.channel }
     if self.schema then
       for _, field in ipairs(self.schema) do
-        local value = assert(self[field], string.format('No field %s on Event', field))
+        local value =
+          assert(self[field], string.format('No field %s on Event', field))
         table.insert(argument_strings, value)
       end
     end
-    return string.format('%s(%s)', self.class.__name, table.concat(argument_strings, ', '))
+    return string.format(
+      '%s(%s)',
+      self.class.__name,
+      table.concat(argument_strings, ', ')
+    )
   end,
-}
+})
 
 --- Note Off event (0x80).
 -- Signals the end of a note.
@@ -206,7 +213,7 @@ Event = class 'Event' {
 -- @field channel number MIDI channel (0-15)
 -- @field note_number number MIDI note number (0-127, 60 = middle C)
 -- @field velocity number Release velocity (0-127)
-NoteEndEvent = class 'NoteEndEvent' : extends(Event) {
+NoteEndEvent = class('NoteEndEvent'):extends(Event)({
   --- Create a new NoteEndEvent.
   -- @function NoteEndEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -220,7 +227,7 @@ NoteEndEvent = class 'NoteEndEvent' : extends(Event) {
   end,
   schema = { 'note_number', 'velocity' },
   command = 0x80,
-}
+})
 
 --- Note On event (0x90).
 -- Signals the start of a note. A velocity of 0 is often used as note off.
@@ -229,7 +236,7 @@ NoteEndEvent = class 'NoteEndEvent' : extends(Event) {
 -- @field channel number MIDI channel (0-15)
 -- @field note_number number MIDI note number (0-127, 60 = middle C)
 -- @field velocity number Attack velocity (0-127, 0 = note off)
-NoteBeginEvent = class 'NoteBeginEvent' : extends(Event) {
+NoteBeginEvent = class('NoteBeginEvent'):extends(Event)({
   --- Create a new NoteBeginEvent.
   -- @function NoteBeginEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -243,7 +250,7 @@ NoteBeginEvent = class 'NoteBeginEvent' : extends(Event) {
   end,
   schema = { 'note_number', 'velocity' },
   command = 0x90,
-}
+})
 
 --- Polyphonic Key Pressure (Aftertouch) event (0xA0).
 -- Pressure applied to an individual note after it's been struck.
@@ -252,7 +259,7 @@ NoteBeginEvent = class 'NoteBeginEvent' : extends(Event) {
 -- @field channel number MIDI channel (0-15)
 -- @field note_number number MIDI note number (0-127)
 -- @field velocity number Pressure value (0-127)
-VelocityChangeEvent = class 'VelocityChangeEvent' : extends(Event) {
+VelocityChangeEvent = class('VelocityChangeEvent'):extends(Event)({
   --- Create a new VelocityChangeEvent.
   -- @function VelocityChangeEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -266,7 +273,7 @@ VelocityChangeEvent = class 'VelocityChangeEvent' : extends(Event) {
   end,
   schema = { 'note_number', 'velocity' },
   command = 0xA0,
-}
+})
 
 --- Control Change event (0xB0).
 -- Changes a controller value (e.g., modulation wheel, sustain pedal).
@@ -275,7 +282,7 @@ VelocityChangeEvent = class 'VelocityChangeEvent' : extends(Event) {
 -- @field channel number MIDI channel (0-15)
 -- @field controller_number number Controller number (0-127)
 -- @field velocity number Controller value (0-127)
-ControllerChangeEvent = class 'ControllerChangeEvent' : extends(Event) {
+ControllerChangeEvent = class('ControllerChangeEvent'):extends(Event)({
   --- Create a new ControllerChangeEvent.
   -- @function ControllerChangeEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -289,7 +296,7 @@ ControllerChangeEvent = class 'ControllerChangeEvent' : extends(Event) {
   end,
   schema = { 'controller_number', 'velocity' },
   command = 0xB0,
-}
+})
 
 --- Program Change event (0xC0).
 -- Changes the instrument/patch on a channel.
@@ -297,7 +304,7 @@ ControllerChangeEvent = class 'ControllerChangeEvent' : extends(Event) {
 -- @field time_delta number Delta time in ticks
 -- @field channel number MIDI channel (0-15)
 -- @field new_program_number number Program/patch number (0-127)
-ProgramChangeEvent = class 'ProgramChangeEvent' : extends(Event) {
+ProgramChangeEvent = class('ProgramChangeEvent'):extends(Event)({
   --- Create a new ProgramChangeEvent.
   -- @function ProgramChangeEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -309,7 +316,7 @@ ProgramChangeEvent = class 'ProgramChangeEvent' : extends(Event) {
   end,
   schema = { 'new_program_number' },
   command = 0xC0,
-}
+})
 
 --- Channel Pressure (Aftertouch) event (0xD0).
 -- Pressure applied to all notes on a channel.
@@ -317,19 +324,20 @@ ProgramChangeEvent = class 'ProgramChangeEvent' : extends(Event) {
 -- @field time_delta number Delta time in ticks
 -- @field channel number MIDI channel (0-15)
 -- @field channel_number number Pressure value (0-127)
-ChannelPressureChangeEvent = class 'ChannelPressureChangeEvent' : extends(Event) {
-  --- Create a new ChannelPressureChangeEvent.
-  -- @function ChannelPressureChangeEvent:__init
-  -- @param time_delta number Delta time in ticks
-  -- @param channel number MIDI channel (0-15)
-  -- @param channel_number number Pressure value (0-127)
-  __init = function(self, time_delta, channel, channel_number)
-    self.Event.__init(self, time_delta, channel)
-    self.channel_number = channel_number
-  end,
-  schema = { 'channel_number' },
-  command = 0xD0,
-}
+ChannelPressureChangeEvent =
+  class('ChannelPressureChangeEvent'):extends(Event)({
+    --- Create a new ChannelPressureChangeEvent.
+    -- @function ChannelPressureChangeEvent:__init
+    -- @param time_delta number Delta time in ticks
+    -- @param channel number MIDI channel (0-15)
+    -- @param channel_number number Pressure value (0-127)
+    __init = function(self, time_delta, channel, channel_number)
+      self.Event.__init(self, time_delta, channel)
+      self.channel_number = channel_number
+    end,
+    schema = { 'channel_number' },
+    command = 0xD0,
+  })
 
 --- Pitch Bend event (0xE0).
 -- Changes the pitch of all notes on a channel.
@@ -338,7 +346,7 @@ ChannelPressureChangeEvent = class 'ChannelPressureChangeEvent' : extends(Event)
 -- @field channel number MIDI channel (0-15)
 -- @field bottom number LSB of pitch bend value (0-127)
 -- @field top number MSB of pitch bend value (0-127)
-PitchWheelChangeEvent = class 'PitchWheelChangeEvent' : extends(Event) {
+PitchWheelChangeEvent = class('PitchWheelChangeEvent'):extends(Event)({
   --- Create a new PitchWheelChangeEvent.
   -- @function PitchWheelChangeEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -352,14 +360,14 @@ PitchWheelChangeEvent = class 'PitchWheelChangeEvent' : extends(Event) {
   end,
   schema = { 'bottom', 'top' },
   command = 0xE0,
-}
+})
 
 --- System Exclusive (SysEx) event (0xF0).
 -- Manufacturer-specific data messages.
 -- @type SystemExclusiveEvent
 -- @field time_delta number Delta time in ticks
 -- @field data table Array of data bytes
-SystemExclusiveEvent = class 'SystemExclusiveEvent' : extends(TimedEvent) {
+SystemExclusiveEvent = class('SystemExclusiveEvent'):extends(TimedEvent)({
   --- Create a new SystemExclusiveEvent.
   -- @function SystemExclusiveEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -396,9 +404,13 @@ SystemExclusiveEvent = class 'SystemExclusiveEvent' : extends(TimedEvent) {
   end,
 
   __tostring = function(self)
-    return string.format('SystemExclusiveEvent(%d, %d bytes)', self.time_delta, #self.data)
+    return string.format(
+      'SystemExclusiveEvent(%d, %d bytes)',
+      self.time_delta,
+      #self.data
+    )
   end,
-}
+})
 
 --- MIDI Time Code Quarter Frame event (0xF1).
 -- Used for synchronization with SMPTE time code.
@@ -406,69 +418,79 @@ SystemExclusiveEvent = class 'SystemExclusiveEvent' : extends(TimedEvent) {
 -- @field time_delta number Delta time in ticks
 -- @field message_type number Message type (0-7)
 -- @field values number Values (0-15)
-MIDITimeCodeQuarterFrameEvent = class 'MIDITimeCodeQuarterFrameEvent' : extends(TimedEvent) {
-  __init = function(self, time_delta, message_type, values)
-    TimedEvent.__init(self, time_delta)
-    self.message_type = message_type
-    self.values = values
-  end,
+MIDITimeCodeQuarterFrameEvent =
+  class('MIDITimeCodeQuarterFrameEvent'):extends(TimedEvent)({
+    __init = function(self, time_delta, message_type, values)
+      TimedEvent.__init(self, time_delta)
+      self.message_type = message_type
+      self.values = values
+    end,
 
-  read = function(file, time_delta)
-    local data = midi_io.readUInt8be(file)
-    local message_type = (data >> 4) & 0x07
-    local values = data & 0x0F
-    return MIDITimeCodeQuarterFrameEvent(time_delta, message_type, values)
-  end,
+    read = function(file, time_delta)
+      local data = midi_io.readUInt8be(file)
+      local message_type = (data >> 4) & 0x07
+      local values = data & 0x0F
+      return MIDITimeCodeQuarterFrameEvent(time_delta, message_type, values)
+    end,
 
-  write = function(self, file)
-    TimedEvent._write_event_time(file, self.time_delta)
-    midi_io.writeUInt8be(file, 0xF1)
-    local data = ((self.message_type & 0x07) << 4) | (self.values & 0x0F)
-    midi_io.writeUInt8be(file, data)
-  end,
+    write = function(self, file)
+      TimedEvent._write_event_time(file, self.time_delta)
+      midi_io.writeUInt8be(file, 0xF1)
+      local data = ((self.message_type & 0x07) << 4) | (self.values & 0x0F)
+      midi_io.writeUInt8be(file, data)
+    end,
 
-  __tostring = function(self)
-    return string.format('MIDITimeCodeQuarterFrameEvent(%d, type=%d, values=%d)', 
-                         self.time_delta, self.message_type, self.values)
-  end,
-}
+    __tostring = function(self)
+      return string.format(
+        'MIDITimeCodeQuarterFrameEvent(%d, type=%d, values=%d)',
+        self.time_delta,
+        self.message_type,
+        self.values
+      )
+    end,
+  })
 
 --- Song Position Pointer event (0xF2).
 -- Indicates the position in the song to start playback.
 -- @type SongPositionPointerEvent
 -- @field time_delta number Delta time in ticks
 -- @field position number Position in MIDI beats (14-bit value)
-SongPositionPointerEvent = class 'SongPositionPointerEvent' : extends(TimedEvent) {
-  __init = function(self, time_delta, position)
-    TimedEvent.__init(self, time_delta)
-    self.position = position
-  end,
+SongPositionPointerEvent =
+  class('SongPositionPointerEvent'):extends(TimedEvent)({
+    __init = function(self, time_delta, position)
+      TimedEvent.__init(self, time_delta)
+      self.position = position
+    end,
 
-  read = function(file, time_delta)
-    local lsb = midi_io.readUInt8be(file)
-    local msb = midi_io.readUInt8be(file)
-    local position = (msb << 7) | lsb
-    return SongPositionPointerEvent(time_delta, position)
-  end,
+    read = function(file, time_delta)
+      local lsb = midi_io.readUInt8be(file)
+      local msb = midi_io.readUInt8be(file)
+      local position = (msb << 7) | lsb
+      return SongPositionPointerEvent(time_delta, position)
+    end,
 
-  write = function(self, file)
-    TimedEvent._write_event_time(file, self.time_delta)
-    midi_io.writeUInt8be(file, 0xF2)
-    midi_io.writeUInt8be(file, self.position & 0x7F)
-    midi_io.writeUInt8be(file, (self.position >> 7) & 0x7F)
-  end,
+    write = function(self, file)
+      TimedEvent._write_event_time(file, self.time_delta)
+      midi_io.writeUInt8be(file, 0xF2)
+      midi_io.writeUInt8be(file, self.position & 0x7F)
+      midi_io.writeUInt8be(file, (self.position >> 7) & 0x7F)
+    end,
 
-  __tostring = function(self)
-    return string.format('SongPositionPointerEvent(%d, position=%d)', self.time_delta, self.position)
-  end,
-}
+    __tostring = function(self)
+      return string.format(
+        'SongPositionPointerEvent(%d, position=%d)',
+        self.time_delta,
+        self.position
+      )
+    end,
+  })
 
 --- Song Select event (0xF3).
 -- Selects a song/sequence to play.
 -- @type SongSelectEvent
 -- @field time_delta number Delta time in ticks
 -- @field song_number number Song number (0-127)
-SongSelectEvent = class 'SongSelectEvent' : extends(TimedEvent) {
+SongSelectEvent = class('SongSelectEvent'):extends(TimedEvent)({
   __init = function(self, time_delta, song_number)
     TimedEvent.__init(self, time_delta)
     self.song_number = song_number
@@ -486,15 +508,19 @@ SongSelectEvent = class 'SongSelectEvent' : extends(TimedEvent) {
   end,
 
   __tostring = function(self)
-    return string.format('SongSelectEvent(%d, song=%d)', self.time_delta, self.song_number)
+    return string.format(
+      'SongSelectEvent(%d, song=%d)',
+      self.time_delta,
+      self.song_number
+    )
   end,
-}
+})
 
 --- Tune Request event (0xF6).
 -- Requests that analog synthesizers tune their oscillators.
 -- @type TuneRequestEvent
 -- @field time_delta number Delta time in ticks
-TuneRequestEvent = class 'TuneRequestEvent' : extends(TimedEvent) {
+TuneRequestEvent = class('TuneRequestEvent'):extends(TimedEvent)({
   __init = function(self, time_delta)
     TimedEvent.__init(self, time_delta)
   end,
@@ -511,13 +537,13 @@ TuneRequestEvent = class 'TuneRequestEvent' : extends(TimedEvent) {
   __tostring = function(self)
     return string.format('TuneRequestEvent(%d)', self.time_delta)
   end,
-}
+})
 
 --- Timing Clock event (0xF8).
 -- Sent 24 times per quarter note for synchronization.
 -- @type TimingClockEvent
 -- @field time_delta number Delta time in ticks
-TimingClockEvent = class 'TimingClockEvent' : extends(TimedEvent) {
+TimingClockEvent = class('TimingClockEvent'):extends(TimedEvent)({
   __init = function(self, time_delta)
     TimedEvent.__init(self, time_delta)
   end,
@@ -534,13 +560,13 @@ TimingClockEvent = class 'TimingClockEvent' : extends(TimedEvent) {
   __tostring = function(self)
     return string.format('TimingClockEvent(%d)', self.time_delta)
   end,
-}
+})
 
 --- Start event (0xFA).
 -- Starts playback from the beginning of the song.
 -- @type StartEvent
 -- @field time_delta number Delta time in ticks
-StartEvent = class 'StartEvent' : extends(TimedEvent) {
+StartEvent = class('StartEvent'):extends(TimedEvent)({
   __init = function(self, time_delta)
     TimedEvent.__init(self, time_delta)
   end,
@@ -557,13 +583,13 @@ StartEvent = class 'StartEvent' : extends(TimedEvent) {
   __tostring = function(self)
     return string.format('StartEvent(%d)', self.time_delta)
   end,
-}
+})
 
 --- Continue event (0xFB).
 -- Resumes playback from the current position.
 -- @type ContinueEvent
 -- @field time_delta number Delta time in ticks
-ContinueEvent = class 'ContinueEvent' : extends(TimedEvent) {
+ContinueEvent = class('ContinueEvent'):extends(TimedEvent)({
   __init = function(self, time_delta)
     TimedEvent.__init(self, time_delta)
   end,
@@ -580,13 +606,13 @@ ContinueEvent = class 'ContinueEvent' : extends(TimedEvent) {
   __tostring = function(self)
     return string.format('ContinueEvent(%d)', self.time_delta)
   end,
-}
+})
 
 --- Stop event (0xFC).
 -- Stops playback.
 -- @type StopEvent
 -- @field time_delta number Delta time in ticks
-StopEvent = class 'StopEvent' : extends(TimedEvent) {
+StopEvent = class('StopEvent'):extends(TimedEvent)({
   __init = function(self, time_delta)
     TimedEvent.__init(self, time_delta)
   end,
@@ -603,13 +629,13 @@ StopEvent = class 'StopEvent' : extends(TimedEvent) {
   __tostring = function(self)
     return string.format('StopEvent(%d)', self.time_delta)
   end,
-}
+})
 
 --- Active Sensing event (0xFE).
 -- Sent periodically to indicate the connection is active.
 -- @type ActiveSensingEvent
 -- @field time_delta number Delta time in ticks
-ActiveSensingEvent = class 'ActiveSensingEvent' : extends(TimedEvent) {
+ActiveSensingEvent = class('ActiveSensingEvent'):extends(TimedEvent)({
   __init = function(self, time_delta)
     TimedEvent.__init(self, time_delta)
   end,
@@ -626,14 +652,14 @@ ActiveSensingEvent = class 'ActiveSensingEvent' : extends(TimedEvent) {
   __tostring = function(self)
     return string.format('ActiveSensingEvent(%d)', self.time_delta)
   end,
-}
+})
 
 --- System Reset event (0xFF as real-time, not in files).
 -- Resets all devices to power-on state.
 -- Note: In MIDI files, 0xFF indicates a meta event, not system reset.
 -- @type SystemResetEvent
 -- @field time_delta number Delta time in ticks
-SystemResetEvent = class 'SystemResetEvent' : extends(TimedEvent) {
+SystemResetEvent = class('SystemResetEvent'):extends(TimedEvent)({
   __init = function(self, time_delta)
     TimedEvent.__init(self, time_delta)
   end,
@@ -650,7 +676,7 @@ SystemResetEvent = class 'SystemResetEvent' : extends(TimedEvent) {
   __tostring = function(self)
     return string.format('SystemResetEvent(%d)', self.time_delta)
   end,
-}
+})
 
 --- Meta Event base class (0xFF).
 -- Meta events contain non-MIDI data such as tempo, time signature, lyrics, etc.
@@ -660,7 +686,7 @@ SystemResetEvent = class 'SystemResetEvent' : extends(TimedEvent) {
 -- @field channel number Always 0x0F for meta events
 -- @field data table Event-specific data bytes
 -- @field meta_command number Meta event type identifier
-MetaEvent = class 'MetaEvent' : extends(Event) {
+MetaEvent = class('MetaEvent'):extends(Event)({
   --- Create a new MetaEvent.
   -- @function MetaEvent:__init
   -- @param time_delta number Delta time in ticks
@@ -686,7 +712,10 @@ MetaEvent = class 'MetaEvent' : extends(Event) {
       table.insert(data, midi_io.readUInt8be(file))
     end
     local meta_event = MetaEvent.types[meta_command]
-    assert(meta_event, string.format('Meta event %02X not recognized', meta_command))
+    assert(
+      meta_event,
+      string.format('Meta event %02X not recognized', meta_command)
+    )
     return meta_event(time_delta, channel, data)
   end,
 
@@ -699,7 +728,7 @@ MetaEvent = class 'MetaEvent' : extends(Event) {
     midi_io.writeUInt8be(file, self.meta_command)
     local data = self.data
     midi_io.writeUInt8be(file, #data)
-    for i=1, #data do
+    for i = 1, #data do
       midi_io.writeUInt8be(file, data[i])
     end
   end,
@@ -708,109 +737,112 @@ MetaEvent = class 'MetaEvent' : extends(Event) {
 
   -- Meta event marker (not standard 0xFF to allow reuse of Event.write)
   command = 0xF0,
-}
+})
 
 --- Sequence Number meta event (0x00).
 -- Optional event at the beginning of a track.
 -- @type SetSequenceNumberEvent
-SetSequenceNumberEvent = class 'SetSequenceNumberEvent' : extends(MetaEvent) {
+SetSequenceNumberEvent = class('SetSequenceNumberEvent'):extends(MetaEvent)({
   meta_command = 0x00,
-}
+})
 
 --- Text meta event (0x01).
 -- General-purpose text annotation.
 -- @type TextEvent
-TextEvent = class 'TextEvent' : extends(MetaEvent) {
+TextEvent = class('TextEvent'):extends(MetaEvent)({
   meta_command = 0x01,
-}
+})
 
 --- Copyright meta event (0x02).
 -- Copyright notice for the MIDI file.
 -- @type CopywriteEvent
-CopywriteEvent = class 'CopywriteEvent' : extends(MetaEvent) {
+CopywriteEvent = class('CopywriteEvent'):extends(MetaEvent)({
   meta_command = 0x02,
-}
+})
 
 --- Sequence/Track Name meta event (0x03).
 -- Name of the sequence or track.
 -- @type SequenceNameEvent
-SequenceNameEvent = class 'SequenceNameEvent' : extends(MetaEvent) {
+SequenceNameEvent = class('SequenceNameEvent'):extends(MetaEvent)({
   meta_command = 0x03,
-}
+})
 
 --- Instrument Name meta event (0x04).
 -- Name of the instrument used in the track.
 -- @type TrackInstrumentNameEvent
-TrackInstrumentNameEvent = class 'TrackInstrumentNameEvent' : extends(MetaEvent) {
-  meta_command = 0x04,
-}
+TrackInstrumentNameEvent =
+  class('TrackInstrumentNameEvent'):extends(MetaEvent)({
+    meta_command = 0x04,
+  })
 
 --- Lyric meta event (0x05).
 -- Lyrics/text to be sung at this time.
 -- @type LyricEvent
-LyricEvent = class 'LyricEvent' : extends(MetaEvent) {
+LyricEvent = class('LyricEvent'):extends(MetaEvent)({
   meta_command = 0x05,
-}
+})
 
 --- Marker meta event (0x06).
 -- Marks a significant point in the sequence.
 -- @type MarkerEvent
-MarkerEvent = class 'MarkerEvent' : extends(MetaEvent) {
+MarkerEvent = class('MarkerEvent'):extends(MetaEvent)({
   meta_command = 0x06,
-}
+})
 
 --- Cue Point meta event (0x07).
 -- Describes an event happening at this point in a video/film.
 -- @type CueEvent
-CueEvent = class 'CueEvent' : extends(MetaEvent) {
+CueEvent = class('CueEvent'):extends(MetaEvent)({
   meta_command = 0x07,
-}
+})
 
 --- Program Name meta event (0x08).
 -- Name of the program/patch used.
 -- @type ProgramNameEvent
-ProgramNameEvent = class 'ProgramNameEvent' : extends(MetaEvent) {
+ProgramNameEvent = class('ProgramNameEvent'):extends(MetaEvent)({
   meta_command = 0x08,
-}
+})
 
 --- Device Name meta event (0x09).
 -- Name of the MIDI device.
 -- @type DeviceNameEvent
-DeviceNameEvent = class 'DeviceNameEvent' : extends(MetaEvent) {
+DeviceNameEvent = class('DeviceNameEvent'):extends(MetaEvent)({
   meta_command = 0x09,
-}
+})
 
 --- MIDI Channel Prefix meta event (0x20).
 -- Associates following meta events with a specific channel.
 -- @type PrefixAssignmentEvent
-PrefixAssignmentEvent = class 'PrefixAssignmentEvent' : extends(MetaEvent) {
+PrefixAssignmentEvent = class('PrefixAssignmentEvent'):extends(MetaEvent)({
   meta_command = 0x20,
-}
+})
 
 --- MIDI Port meta event (0x21).
 -- Specifies the MIDI port to use.
 -- @type PortChannelPrefixEvent
-PortChannelPrefixEvent = class 'PortChannelPrefixEvent' : extends(MetaEvent) {
+PortChannelPrefixEvent = class('PortChannelPrefixEvent'):extends(MetaEvent)({
   meta_command = 0x21,
-}
+})
 
 --- End of Track meta event (0x2F).
 -- Required at the end of every track.
 -- @type EndOfTrackEvent
-EndOfTrackEvent = class 'EndOfTrackEvent' : extends(MetaEvent) {
+EndOfTrackEvent = class('EndOfTrackEvent'):extends(MetaEvent)({
   meta_command = 0x2F,
-}
+})
 
 --- Set Tempo meta event (0x51).
 -- Sets the tempo in microseconds per quarter note.
 -- @type SetTempoEvent
-SetTempoEvent = class 'SetTempoEvent' : extends(MetaEvent) {
+SetTempoEvent = class('SetTempoEvent'):extends(MetaEvent)({
   meta_command = 0x51,
 
   --- Get tempo in microseconds per quarter note.
   -- @return number|nil Tempo in microseconds, or nil if data is invalid
   get_tempo = function(self)
-    if #self.data ~= 3 then return nil end
+    if #self.data ~= 3 then
+      return nil
+    end
     return (self.data[1] << 16) | (self.data[2] << 8) | self.data[3]
   end,
 
@@ -829,7 +861,9 @@ SetTempoEvent = class 'SetTempoEvent' : extends(MetaEvent) {
   -- @return number|nil BPM, or nil if data is invalid
   get_bpm = function(self)
     local tempo = self:get_tempo()
-    if not tempo then return nil end
+    if not tempo then
+      return nil
+    end
     return 60000000 / tempo
   end,
 
@@ -847,20 +881,26 @@ SetTempoEvent = class 'SetTempoEvent' : extends(MetaEvent) {
         table.insert(argument_strings, self.data[i])
       end
     end
-    return string.format('%s(%s)', self.class.__name, table.concat(argument_strings, ', '))
+    return string.format(
+      '%s(%s)',
+      self.class.__name,
+      table.concat(argument_strings, ', ')
+    )
   end,
-}
+})
 
 --- SMPTE Offset meta event (0x54).
 -- Specifies the SMPTE time at which the track should start.
 -- @type SMPTEOffsetEvent
-SMPTEOffsetEvent = class 'SMPTEOffsetEvent' : extends(MetaEvent) {
+SMPTEOffsetEvent = class('SMPTEOffsetEvent'):extends(MetaEvent)({
   meta_command = 0x54,
 
   --- Get SMPTE offset components.
   -- @return table|nil Table with hours, minutes, seconds, frames, fractional_frames, or nil if invalid
   get_offset = function(self)
-    if #self.data ~= 5 then return nil end
+    if #self.data ~= 5 then
+      return nil
+    end
     return {
       hours = self.data[1],
       minutes = self.data[2],
@@ -877,21 +917,30 @@ SMPTEOffsetEvent = class 'SMPTEOffsetEvent' : extends(MetaEvent) {
   -- @param seconds number Seconds (0-59)
   -- @param frames number Frames (0-29)
   -- @param fractional_frames number Sub-frames (default 0)
-  set_offset = function(self, hours, minutes, seconds, frames, fractional_frames)
+  set_offset = function(
+    self,
+    hours,
+    minutes,
+    seconds,
+    frames,
+    fractional_frames
+  )
     self.data = { hours, minutes, seconds, frames, fractional_frames or 0 }
   end,
-}
+})
 
 --- Time Signature meta event (0x58).
 -- Defines the time signature (e.g., 4/4, 3/4, 6/8).
 -- @type TimeSignatureEvent
-TimeSignatureEvent = class 'TimeSignatureEvent' : extends(MetaEvent) {
+TimeSignatureEvent = class('TimeSignatureEvent'):extends(MetaEvent)({
   meta_command = 0x58,
 
   --- Get time signature components.
   -- @return table|nil Table with numerator, denominator, clocks_per_metronome_click, thirty_seconds_per_quarter, or nil if invalid
   get_time_signature = function(self)
-    if #self.data ~= 4 then return nil end
+    if #self.data ~= 4 then
+      return nil
+    end
     return {
       numerator = self.data[1],
       denominator = 2 ^ self.data[2],
@@ -906,7 +955,13 @@ TimeSignatureEvent = class 'TimeSignatureEvent' : extends(MetaEvent) {
   -- @param denominator number Note value per beat (must be power of 2, e.g., 4 for quarter note)
   -- @param clocks_per_click number MIDI clocks per metronome click (default 24)
   -- @param thirty_seconds_per_quarter number 32nd notes per quarter note (default 8)
-  set_time_signature = function(self, numerator, denominator, clocks_per_click, thirty_seconds_per_quarter)
+  set_time_signature = function(
+    self,
+    numerator,
+    denominator,
+    clocks_per_click,
+    thirty_seconds_per_quarter
+  )
     -- Denominator must be a power of 2
     local denominator_power = math.floor(math.log(denominator) / math.log(2))
     self.data = {
@@ -916,25 +971,27 @@ TimeSignatureEvent = class 'TimeSignatureEvent' : extends(MetaEvent) {
       thirty_seconds_per_quarter or 8,
     }
   end,
-}
+})
 
 --- Key Signature meta event (0x59).
 -- Defines the key signature (sharps/flats and major/minor).
 -- @type KeySignatureEvent
-KeySignatureEvent = class 'KeySignatureEvent' : extends(MetaEvent) {
+KeySignatureEvent = class('KeySignatureEvent'):extends(MetaEvent)({
   meta_command = 0x59,
 
   --- Get key signature components.
   -- @return table|nil Table with sharps_flats (-7 to +7) and is_minor (boolean), or nil if invalid
   get_key_signature = function(self)
-    if #self.data ~= 2 then return nil end
+    if #self.data ~= 2 then
+      return nil
+    end
     local sharps_flats = self.data[1]
     -- Convert from unsigned to signed
     if sharps_flats > 127 then
       sharps_flats = sharps_flats - 256
     end
     return {
-      sharps_flats = sharps_flats,  -- -7 (7 flats) to +7 (7 sharps)
+      sharps_flats = sharps_flats, -- -7 (7 flats) to +7 (7 sharps)
       is_minor = self.data[2] == 1,
     }
   end,
@@ -951,14 +1008,14 @@ KeySignatureEvent = class 'KeySignatureEvent' : extends(MetaEvent) {
     end
     self.data = { sf, is_minor and 1 or 0 }
   end,
-}
+})
 
 --- Sequencer Specific meta event (0x7F).
 -- Manufacturer-specific sequencer data.
 -- @type SequencerSpecificEvent
-SequencerSpecificEvent = class 'SequencerSpecificEvent' : extends(MetaEvent) {
+SequencerSpecificEvent = class('SequencerSpecificEvent'):extends(MetaEvent)({
   meta_command = 0x7F,
-}
+})
 
 -- Register regular MIDI events by command
 local event_type_list = {
@@ -1025,4 +1082,3 @@ system_event_types[0xFE] = ActiveSensingEvent
 -- system_event_types[0xFF] is NOT set - 0xFF in MIDI files is a meta event prefix
 
 return _M
-

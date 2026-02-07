@@ -1,11 +1,11 @@
 -- Copyright 2025 Alexander Ames <Alexander.Ames@gmail.com>
 
-local core = require 'llx.core'
-local table_module = require 'llx.types.table'
-local class_module = require 'llx.class'
-local environment = require 'llx.environment'
-local set_module = require 'llx.types.set'
-local enum_module = require 'llx.enum'
+local core = require('llx.core')
+local table_module = require('llx.types.table')
+local class_module = require('llx.class')
+local environment = require('llx.environment')
+local set_module = require('llx.types.set')
+local enum_module = require('llx.enum')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -15,11 +15,30 @@ local Table = table_module.Table
 local Set = set_module.Set
 local enum = enum_module.enum
 
-local KEYWORDS <const> = Set{
-  'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for', 'function',
-  'goto', 'if', 'in', 'local', 'nil', 'not', 'or', 'repeat', 'return', 'then',
-  'true', 'until', 'while'
-}
+local KEYWORDS <const> = Set({
+  'and',
+  'break',
+  'do',
+  'else',
+  'elseif',
+  'end',
+  'false',
+  'for',
+  'function',
+  'goto',
+  'if',
+  'in',
+  'local',
+  'nil',
+  'not',
+  'or',
+  'repeat',
+  'return',
+  'then',
+  'true',
+  'until',
+  'while',
+})
 
 local NAME_PATTERN = '^%a%w*$'
 
@@ -36,16 +55,18 @@ end
 local function table_is_list(t)
   local count = 0
   for k, _ in pairs(t) do
-    if type(k) ~= 'number' then return false end
+    if type(k) ~= 'number' then
+      return false
+    end
     count = count + 1
   end
   return count == #t
 end
 
-StringFormatter = class 'StringFormatter' {
+StringFormatter = class('StringFormatter')({
   __init = function(self, style, buffer, indentation_level)
     self._style = style
-    self._buffer = buffer or Table{}
+    self._buffer = buffer or Table({})
     self._indentation_level = indentation_level or 0
   end,
 
@@ -70,7 +91,9 @@ StringFormatter = class 'StringFormatter' {
     end
   end,
 
-  ['nil'] = function(self) self:insert('nil') end,
+  ['nil'] = function(self)
+    self:insert('nil')
+  end,
   boolean = default_formatter,
   number = default_formatter,
   string = function(self, value)
@@ -189,7 +212,14 @@ StringFormatter = class 'StringFormatter' {
     end
   end,
 
-  table_field = function(self, key, value, final_field, value_formatter, element_style)
+  table_field = function(
+    self,
+    key,
+    value,
+    final_field,
+    value_formatter,
+    element_style
+  )
     if self._new_line_pending then
       self:actually_add_new_line()
     end
@@ -212,7 +242,13 @@ StringFormatter = class 'StringFormatter' {
       local key, value, value_style = table.unpack(field)
       local value_formatter = value_style and self:clone(value_style) or self
       local final_field = i == #fields
-      self:table_field(key, value, final_field, value_formatter, field.element_style)
+      self:table_field(
+        key,
+        value,
+        final_field,
+        value_formatter,
+        field.element_style
+      )
     end
     self:table_end()
   end,
@@ -226,13 +262,13 @@ StringFormatter = class 'StringFormatter' {
     end
     self:insert('}')
   end,
-}
+})
 
-TypeVerbosity = enum 'TypeVerbosity' {
+TypeVerbosity = enum('TypeVerbosity')({
   'Field',
   'TypeField',
   'ModuleTypeField',
-}
+})
 
 styles = {
   minimal = {

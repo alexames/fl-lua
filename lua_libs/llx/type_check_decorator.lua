@@ -1,9 +1,9 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local class_module = require 'llx.class'
-local environment = require 'llx.environment'
-local exceptions = require 'llx.exceptions'
-local getclass_module = require 'llx.getclass'
+local class_module = require('llx.class')
+local environment = require('llx.environment')
+local exceptions = require('llx.exceptions')
+local getclass_module = require('llx.getclass')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -33,8 +33,8 @@ function type_check_decorator(underlying_function, expected_types)
   local return_types = expected_types.returns
   local function type_checker(underlying_function)
     return function(...)
-      check_types('argument', argument_types, {...})
-      local result = {underlying_function(...)}
+      check_types('argument', argument_types, { ... })
+      local result = { underlying_function(...) }
       check_types('return', return_types, result)
       return table.unpack(result)
     end

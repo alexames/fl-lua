@@ -3,9 +3,9 @@
 --- Rule requiring all pitches to be in a given scale.
 -- @module musica.generation.rules.in_scale
 
-local z3 = require 'z3'
-local llx = require 'llx'
-local rule_module = require 'musica.generation.rule'
+local z3 = require('z3')
+local llx = require('llx')
+local rule_module = require('musica.generation.rule')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -20,14 +20,14 @@ local Rule = rule_module.Rule
 -- Uses modular arithmetic (pitch % 12) to check scale membership
 -- across all octaves.
 -- @type InScaleRule
-InScaleRule = class 'InScaleRule' : extends(Rule) {
+InScaleRule = class('InScaleRule'):extends(Rule)({
   --- Creates a new InScaleRule.
   -- @tparam InScaleRule self
   -- @tparam table args Configuration table
   -- @tparam Scale args.scale The scale to constrain pitches to
   -- @tparam[opt='in_scale'] string args.name Rule name
   __init = function(self, args)
-    Rule.__init(self, {name = args.name or 'in_scale'})
+    Rule.__init(self, { name = args.name or 'in_scale' })
     self.scale = args.scale
   end,
 
@@ -39,8 +39,13 @@ InScaleRule = class 'InScaleRule' : extends(Rule) {
   validate = function(self, figure)
     for i, note in ipairs(figure.notes) do
       if not self.scale:contains(note.pitch) then
-        return false, string.format('Note %d (%s) not in scale %s',
-          i, note.pitch, self.scale)
+        return false,
+          string.format(
+            'Note %d (%s) not in scale %s',
+            i,
+            note.pitch,
+            self.scale
+          )
       end
     end
     return true
@@ -54,11 +59,11 @@ InScaleRule = class 'InScaleRule' : extends(Rule) {
   -- @treturn z3.expr Z3 constraint expression
   to_z3 = function(self, ctx)
     local z3_ctx = ctx:get_z3_context()
-    local constraints = List{}
+    local constraints = List({})
 
     -- Get all valid pitch classes in the scale (mod 12 for octave equivalence)
     local scale_pitches = self.scale:get_pitches()
-    local valid_pitch_classes = List{}
+    local valid_pitch_classes = List({})
     for i, pitch in ipairs(scale_pitches) do
       local pc = tointeger(pitch) % 12
       if not valid_pitch_classes:contains(pc) then
@@ -68,10 +73,11 @@ InScaleRule = class 'InScaleRule' : extends(Rule) {
 
     -- For each note position, pitch % 12 must equal one of the valid pitch classes
     for i, pitch_var in ipairs(ctx:get_pitch_vars()) do
-      local valid_options = List{}
+      local valid_options = List({})
       for j, pc in ipairs(valid_pitch_classes) do
         -- (pitch_var % 12) == pc
-        local mod_expr = pitch_var - (pitch_var / z3_ctx:int_val(12)) * z3_ctx:int_val(12)
+        local mod_expr = pitch_var
+          - (pitch_var / z3_ctx:int_val(12)) * z3_ctx:int_val(12)
         valid_options:insert(mod_expr:eq(z3_ctx:int_val(pc)))
       end
 
@@ -89,6 +95,6 @@ InScaleRule = class 'InScaleRule' : extends(Rule) {
   __tostring = function(self)
     return string.format('InScaleRule{scale=%s}', self.scale)
   end,
-}
+})
 
 return _M

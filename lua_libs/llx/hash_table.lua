@@ -1,8 +1,8 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local class_module = require 'llx.class'
-local environment = require 'llx.environment'
-local hash = require 'llx.hash'
+local class_module = require('llx.class')
+local environment = require('llx.environment')
+local hash = require('llx.hash')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -13,14 +13,13 @@ local class = class_module.class
 -- By hashing the keys, any type that has a __hash metamethod can be used as a
 -- key, which is useful for things like Tuples where you may have different
 -- Lua objects that contain the same values, and thus hash the same.
-HashTable = class 'HashTable' {
-  __init = function(self)
-  end,
+HashTable = class('HashTable')({
+  __init = function(self) end,
 
   __newindex = function(self, k, v)
     local hashed_key = hash.hash(k)
     if v ~= nil then
-      rawset(self, hashed_key, {key=k, value=v})
+      rawset(self, hashed_key, { key = k, value = v })
     else
       rawset(self, hashed_key, nil)
     end
@@ -37,9 +36,11 @@ HashTable = class 'HashTable' {
     return function()
       local hashed_key = next(self, hashed_key)
       local slot = rawget(self, hashed_key)
-      if slot then return slot.key, slot.value end
+      if slot then
+        return slot.key, slot.value
+      end
     end
   end,
-}
+})
 
 return _M

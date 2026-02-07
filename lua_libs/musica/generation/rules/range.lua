@@ -3,9 +3,9 @@
 --- Rule for constraining pitch range.
 -- @module musica.generation.rules.range
 
-local llx = require 'llx'
-local z3 = require 'z3'
-local rule_module = require 'musica.generation.rule'
+local llx = require('llx')
+local z3 = require('z3')
+local rule_module = require('musica.generation.rule')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -17,7 +17,7 @@ local Rule = rule_module.Rule
 
 --- Rule constraining pitches to a specific range.
 -- @type PitchRangeRule
-PitchRangeRule = class 'PitchRangeRule' : extends(Rule) {
+PitchRangeRule = class('PitchRangeRule'):extends(Rule)({
   --- Creates a new PitchRangeRule.
   -- @tparam PitchRangeRule self
   -- @tparam table args Configuration table
@@ -25,7 +25,7 @@ PitchRangeRule = class 'PitchRangeRule' : extends(Rule) {
   -- @tparam Pitch|number args.max_pitch Maximum allowed pitch
   -- @tparam[opt='pitch_range'] string args.name Rule name
   __init = function(self, args)
-    Rule.__init(self, {name = args.name or 'pitch_range'})
+    Rule.__init(self, { name = args.name or 'pitch_range' })
     self.min_pitch = tointeger(args.min_pitch)
     self.max_pitch = tointeger(args.max_pitch)
   end,
@@ -39,12 +39,24 @@ PitchRangeRule = class 'PitchRangeRule' : extends(Rule) {
     for i, note in ipairs(figure.notes) do
       local pitch_val = tointeger(note.pitch)
       if pitch_val < self.min_pitch then
-        return false, string.format('Note %d (%s, MIDI %d) below minimum %d',
-          i, note.pitch, pitch_val, self.min_pitch)
+        return false,
+          string.format(
+            'Note %d (%s, MIDI %d) below minimum %d',
+            i,
+            note.pitch,
+            pitch_val,
+            self.min_pitch
+          )
       end
       if pitch_val > self.max_pitch then
-        return false, string.format('Note %d (%s, MIDI %d) above maximum %d',
-          i, note.pitch, pitch_val, self.max_pitch)
+        return false,
+          string.format(
+            'Note %d (%s, MIDI %d) above maximum %d',
+            i,
+            note.pitch,
+            pitch_val,
+            self.max_pitch
+          )
       end
     end
     return true
@@ -56,7 +68,7 @@ PitchRangeRule = class 'PitchRangeRule' : extends(Rule) {
   -- @treturn z3.expr Z3 constraint expression
   to_z3 = function(self, ctx)
     local z3_ctx = ctx:get_z3_context()
-    local constraints = List{}
+    local constraints = List({})
 
     for i, pitch_var in ipairs(ctx:get_pitch_vars()) do
       constraints:insert(pitch_var:ge(z3_ctx:int_val(self.min_pitch)))
@@ -70,9 +82,12 @@ PitchRangeRule = class 'PitchRangeRule' : extends(Rule) {
   end,
 
   __tostring = function(self)
-    return string.format('PitchRangeRule{min=%d, max=%d}',
-      self.min_pitch, self.max_pitch)
+    return string.format(
+      'PitchRangeRule{min=%d, max=%d}',
+      self.min_pitch,
+      self.max_pitch
+    )
   end,
-}
+})
 
 return _M

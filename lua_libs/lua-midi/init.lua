@@ -22,14 +22,14 @@
 -- -- Create events
 -- local note_on = midi.event.NoteBeginEvent(0, 0, 60, 100)
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local lock <close> = llx.lock_global_table()
 
-return require 'llx.flatten_submodules' {
-  require 'lua-midi.midi_file',
-  require 'lua-midi.track',
-  require 'lua-midi.instrument',
-  require 'lua-midi.validation',
-  event=require 'lua-midi.event',
-}
+return require('llx.flatten_submodules')({
+  require('lua-midi.midi_file'),
+  require('lua-midi.track'),
+  require('lua-midi.instrument'),
+  require('lua-midi.validation'),
+  event = require('lua-midi.event'),
+})

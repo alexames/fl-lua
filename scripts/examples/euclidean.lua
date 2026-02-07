@@ -9,18 +9,18 @@ local pattern = {}
 
 -- Generate Euclidean rhythm via Bjorklund's algorithm
 local function euclidean(h, s)
-    local result = {}
-    local bucket = 0
-    for i = 1, s do
-        bucket = bucket + h
-        if bucket >= s then
-            bucket = bucket - s
-            result[i] = true
-        else
-            result[i] = false
-        end
+  local result = {}
+  local bucket = 0
+  for i = 1, s do
+    bucket = bucket + h
+    if bucket >= s then
+      bucket = bucket - s
+      result[i] = true
+    else
+      result[i] = false
     end
-    return result
+  end
+  return result
 end
 
 pattern = euclidean(hits, steps)
@@ -28,8 +28,8 @@ pattern = euclidean(hits, steps)
 local step = 0
 
 function on_beat(ctx, beat)
-    step = (beat % steps) + 1
-    if pattern[step] then
-        ctx.note(note, 100, 0.25)
-    end
+  step = (beat % steps) + 1
+  if pattern[step] then
+    ctx.note(note, 100, 0.25)
+  end
 end

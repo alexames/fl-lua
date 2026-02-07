@@ -15,14 +15,14 @@
 -- -- Set program change
 -- local event = midi.event.ProgramChangeEvent(0, 0, midi.instrument.acoustic_grand)
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
 --- General MIDI instrument enumeration.
 -- Maps instrument names to program numbers (0-127).
 -- @table instrument
-instrument = llx.enum 'instrument' {
+instrument = llx.enum('instrument')({
   -- Piano
   [0] = 'acoustic_grand',
   'bright_acoustic',
@@ -182,6 +182,6 @@ instrument = llx.enum 'instrument' {
   'helicopter',
   'applause',
   'gunshot',
-}
+})
 
 return _M

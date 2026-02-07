@@ -5,8 +5,7 @@ export_config.types = {}
 export_config.index = 0
 export_config.ui_hint = {}
 
-function export_config.ui_hint()
-end
+function export_config.ui_hint() end
 
 local function create_export_type(name, t, mt, default)
   t = t or {}
@@ -35,18 +34,26 @@ local function export(t)
       index = variable_data.index,
     })
   end
-  table.sort(sorted, function(a, b) return a.index < b.index end)
+  table.sort(sorted, function(a, b)
+    return a.index < b.index
+  end)
   for i, variable in ipairs(sorted) do
-    print(variable.type.name .. ' ' .. variable.name .. ' = ' .. tostring(variable.value))
+    print(
+      variable.type.name
+        .. ' '
+        .. variable.name
+        .. ' = '
+        .. tostring(variable.value)
+    )
   end
 end
 
 local function test()
   --------------------------------------------------------------------------------
 
-  create_export_type("bool", {}, {}, false, checkbox)
-  create_export_type("number", {}, {}, 0, textbox)
-  create_export_type("string", string, {}, "", textbox)
+  create_export_type('bool', {}, {}, false, checkbox)
+  create_export_type('number', {}, {}, 0, textbox)
+  create_export_type('string', string, {}, '', textbox)
 
   --------------------------------------------------------------------------------
 
@@ -63,20 +70,20 @@ local function test()
   -- checkbox
   -- texture
 
-  export {
-    foo = number(100);
-    bar = string("test");
-    baz = bool(true);
-    quux = bool();
-    quaz = bool();
-    bork = number();
-  }
+  export({
+    foo = number(100),
+    bar = string('test'),
+    baz = bool(true),
+    quux = bool(),
+    quaz = bool(),
+    bork = number(),
+  })
 
-  print("testing foo:", foo)
+  print('testing foo:', foo)
 end
 
 return {
-  export=export,
-  create_export_type=create_export_type,
-  test=test,
+  export = export,
+  create_export_type = create_export_type,
+  test = test,
 }

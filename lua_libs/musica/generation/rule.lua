@@ -5,7 +5,7 @@
 -- Figures and generate Z3 constraints for the Generator to solve.
 -- @module musica.generation.rule
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -16,7 +16,7 @@ local class = llx.class
 -- 1. Validate a Figure to check if it satisfies the rule
 -- 2. Convert to Z3 constraints for use in generation
 -- @type Rule
-Rule = class 'Rule' {
+Rule = class('Rule')({
   --- Creates a new Rule.
   -- @tparam Rule self
   -- @tparam table args Configuration table
@@ -50,6 +50,6 @@ Rule = class 'Rule' {
   __tostring = function(self)
     return string.format('Rule<%s>', self.name)
   end,
-}
+})
 
 return _M

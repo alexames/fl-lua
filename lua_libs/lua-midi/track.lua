@@ -16,9 +16,9 @@
 -- table.insert(t.events, event.NoteBeginEvent(0, 0, 60, 100))
 -- table.insert(t.events, event.NoteEndEvent(480, 0, 60, 0))
 
-local llx = require 'llx'
-local midi_io = require 'lua-midi.io'
-local midi_event = require 'lua-midi.event'
+local llx = require('llx')
+local midi_io = require('lua-midi.io')
+local midi_event = require('lua-midi.event')
 
 local _ENV, _M = llx.environment.create_module_environment()
 local class = llx.class
@@ -27,13 +27,13 @@ local class = llx.class
 -- A track contains a list of MIDI events with delta times.
 -- @type Track
 -- @field events List List of MIDI events
-Track = class 'Track' {
+Track = class('Track')({
   --- Create a new Track.
   -- @function Track:__init
   -- @param events List Optional list of MIDI events (default: empty list)
   -- @return Track A new Track instance
   __init = function(self, events)
-    self.events = events or llx.List{}
+    self.events = events or llx.List({})
   end,
 
   --- Calculate the total byte length of the track (excluding 'MTrk' and length field).
@@ -59,21 +59,27 @@ Track = class 'Track' {
 
       -- Determine if command byte must be written (running status optimization)
       local commandByte = event.command | event.channel
-      if commandByte ~= previous_command_byte
-         or event.command == midi_event.MetaEvent.command then
+      if
+        commandByte ~= previous_command_byte
+        or event.command == midi_event.MetaEvent.command
+      then
         length = length + 1
         previous_command_byte = commandByte
       end
 
       -- Account for the size of the event data
-      if event.command == midi_event.ProgramChangeEvent.command
-         or event.command == midi_event.ChannelPressureChangeEvent.command then
+      if
+        event.command == midi_event.ProgramChangeEvent.command
+        or event.command == midi_event.ChannelPressureChangeEvent.command
+      then
         length = length + 1
-      elseif event.command == midi_event.NoteEndEvent.command
-          or event.command == midi_event.NoteBeginEvent.command
-          or event.command == midi_event.VelocityChangeEvent.command
-          or event.command == midi_event.ControllerChangeEvent.command
-          or event.command == midi_event.PitchWheelChangeEvent.command then
+      elseif
+        event.command == midi_event.NoteEndEvent.command
+        or event.command == midi_event.NoteBeginEvent.command
+        or event.command == midi_event.VelocityChangeEvent.command
+        or event.command == midi_event.ControllerChangeEvent.command
+        or event.command == midi_event.PitchWheelChangeEvent.command
+      then
         length = length + 2
       elseif event.command == midi_event.MetaEvent.command then
         -- Meta events have: 1 byte (meta ID) + 1 byte (length) + payload
@@ -103,7 +109,10 @@ Track = class 'Track' {
         file:seek() < end_of_track,
         string.format(
           'Read too many bytes for track (got %i, expected %i)',
-          file:seek(), end_of_track))
+          file:seek(),
+          end_of_track
+        )
+      )
       table.insert(track.events, midi_event.Event.read(file, context))
     end
 
@@ -132,9 +141,11 @@ Track = class 'Track' {
     for i, event in ipairs(self.events) do
       event_strings[i] = tostring(event)
     end
-    return string.format('Track{events={%s}}',
-                         table.concat(event_strings, ', '))
+    return string.format(
+      'Track{events={%s}}',
+      table.concat(event_strings, ', ')
+    )
   end,
-}
+})
 
 return _M

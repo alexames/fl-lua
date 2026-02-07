@@ -1,20 +1,22 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local environment = require 'llx.environment'
+local environment = require('llx.environment')
 
 local _ENV, _M = environment.create_module_environment()
 
 local function table_is_list(t)
   local count = 0
   for k, _ in pairs(t) do
-    if type(k) ~= 'number' then return false end
+    if type(k) ~= 'number' then
+      return false
+    end
     count = count + 1
   end
   return count == #t
 end
 
 function dump_value(t, visited)
-  local result = ""
+  local result = ''
   visited = visited or {}
   if type(t) == 'table' then
     if visited[t] then
@@ -41,7 +43,7 @@ function dump_value(t, visited)
       end
       result = result .. '}'
     end
-  elseif type(t) == "string" then
+  elseif type(t) == 'string' then
     result = result .. "'" .. t .. "'"
   else
     result = result .. tostring(t)

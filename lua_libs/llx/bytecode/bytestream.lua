@@ -1,10 +1,9 @@
-
 bytestream_metatable = {
   read_int32 = function(self)
     return self:read_int8() << 0
-           | self:read_int8() << 8
-           | self:read_int8() << 16
-           | self:read_int8() << 24
+      | self:read_int8() << 8
+      | self:read_int8() << 16
+      | self:read_int8() << 24
   end,
 
   read_int8 = function(self)
@@ -18,7 +17,7 @@ bytestream_metatable = {
 
   read_vector = function(self, n, vector_fn, element_fn)
     local result = {}
-    for i=1, n do
+    for i = 1, n do
       table.insert(result, element_fn(self:read_int8()))
     end
     return vector_fn(result)
@@ -29,13 +28,15 @@ bytestream_metatable = {
   end,
 
   read_byte_vector = function(self, n)
-    local function noop(...) return ... end
+    local function noop(...)
+      return ...
+    end
     return self:read_vector(n, noop, noop)
   end,
 
   read_literal = function(self, n)
     local s = {}
-    for i=1, n do
+    for i = 1, n do
       local byte = self:read_int8()
       table.insert(s, string.char(byte))
     end
@@ -49,7 +50,7 @@ bytestream_metatable = {
 
   read_number = function(self)
     local bytes = {}
-    for i=1, 8 do
+    for i = 1, 8 do
       bytes[i] = string.char(self:read_int8())
     end
     return string.unpack('n', table.concat(bytes))
@@ -57,7 +58,7 @@ bytestream_metatable = {
 
   read_integer = function(self)
     local bytes = {}
-    for i=1, 8 do
+    for i = 1, 8 do
       bytes[i] = string.char(self:read_int8())
     end
     return string.unpack('j', table.concat(bytes))
@@ -79,10 +80,12 @@ bytestream_metatable = {
 bytestream_metatable.__index = bytestream_metatable
 
 function ByteStream(bytes, log_bytes)
-  return setmetatable({_bytes=bytes, _index=0, _log_bytes=log_bytes},
-                      bytestream_metatable)
+  return setmetatable(
+    { _bytes = bytes, _index = 0, _log_bytes = log_bytes },
+    bytestream_metatable
+  )
 end
 
 return {
-  ByteStream=ByteStream
+  ByteStream = ByteStream,
 }

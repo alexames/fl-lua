@@ -1,8 +1,8 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local class_module = require 'llx.class'
-local decorator = require 'llx.decorator'
-local environment = require 'llx.environment'
+local class_module = require('llx.class')
+local decorator = require('llx.decorator')
+local environment = require('llx.environment')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -63,7 +63,7 @@ local function try_set_property(class_table, t, k, v)
 end
 
 --- Treat a getter/setter pair on a table as a field.
-Property = class 'Property' : extends(Decorator) {
+Property = class('Property'):extends(Decorator)({
   decorate = function(self, class_table, name, value)
     local properties = class_table.__properties
     if properties == nil then
@@ -82,7 +82,7 @@ Property = class 'Property' : extends(Decorator) {
     end
     return properties, name, value
   end,
-}
+})
 property = Property()
 
 return _M

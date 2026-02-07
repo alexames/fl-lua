@@ -1,68 +1,73 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
 local class = llx.class
 local List = llx.List
 
-Pulse = class 'Pulse' {
+Pulse = class('Pulse')({
   __init = function(self, duration)
     self.duration = duration or 1
-  end
-}
+  end,
+})
 
-StressedPulse = class 'StressedPulse' :extends(Pulse) {
+StressedPulse = class('StressedPulse'):extends(Pulse)({
   isStressed = function(self)
     return true
-  end
-}
+  end,
+})
 
-UnstressedPulse = class UnstressedPulse : extends(Pulse) {
+UnstressedPulse = class
+UnstressedPulse:extends(Pulse)({
   isStressed = function(self)
     return false
-  end
-}
+  end,
+})
 
 -- The sequence of stressed and unstressed beats in a phrase.
-Meter = class 'Meter' {
+Meter = class('Meter')({
   __init = function(self, pulses)
     self.pulseSequence = pulses
-  end;
+  end,
 
   duration = function(self)
     -- return sum(pulse.duration for pulse in self.pulseSequence)
-  end;
+  end,
 
   beats = function(self, numberOfBeats)
     return numberOfBeats
-  end;
+  end,
 
   pulses = function(self, numberOfPulses)
     error(NotImplementedError())
-  end;
+  end,
 
   measures = function(self, numberOfMeasures)
     return numberOfMeasures * self.duration()
-  end;
-}
+  end,
+})
 
-MeterProgression = class 'MeterProgression' {
+MeterProgression = class('MeterProgression')({
   __init = function(self, periods)
     self.periods = periods
-  end;
+  end,
 
   duration = function(self)
     -- return sum(meter.duration() * measures
     --            for meter, measures in self.periods)
-  end;
-}
+  end,
+})
 
-four_four = Meter(List{StressedPulse(),
-                       UnstressedPulse(),
-                       StressedPulse(),
-                       UnstressedPulse()})
+four_four = Meter(
+  List({
+    StressedPulse(),
+    UnstressedPulse(),
+    StressedPulse(),
+    UnstressedPulse(),
+  })
+)
 
 common_meter = four_four
 

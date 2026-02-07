@@ -1,7 +1,6 @@
-
 local enum_metatable = {
   insert = function(self, k, v)
-    local enum_object = {name=v, value=k}
+    local enum_object = { name = v, value = k }
     if self[k] == nil then
       rawset(self, k, enum_object)
     end
@@ -12,7 +11,7 @@ local enum_metatable = {
 
   __newindex = function(self, k, v)
     self:insert(k, v)
-  end
+  end,
 }
 
 enum_metatable.__index = enum_metatable
@@ -26,5 +25,5 @@ local function enum(t)
 end
 
 return {
-  enum = enum
+  enum = enum,
 }

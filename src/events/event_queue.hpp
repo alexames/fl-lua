@@ -1,8 +1,10 @@
 #pragma once
 
-#include "midi_event.hpp"
 #include <readerwriterqueue/readerwriterqueue.h>
+
 #include <string>
+
+#include "midi_event.hpp"
 
 namespace FLLua {
 
@@ -14,8 +16,8 @@ using LogQueue = moodycamel::ReaderWriterQueue<std::string>;
 
 // Message to swap script in the processor
 struct ScriptSwapMessage {
-    std::string source;
+  std::string source;
 };
 using ScriptQueue = moodycamel::ReaderWriterQueue<ScriptSwapMessage>;
 
-} // namespace FLLua
+}  // namespace FLLua

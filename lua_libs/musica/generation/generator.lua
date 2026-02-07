@@ -6,9 +6,9 @@
 -- generation and enumeration of all possible solutions.
 -- @module musica.generation.generator
 
-local llx = require 'llx'
-local z3 = require 'z3'
-local context_module = require 'musica.generation.context'
+local llx = require('llx')
+local z3 = require('z3')
+local context_module = require('musica.generation.context')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -20,7 +20,7 @@ local GenerationContext = context_module.GenerationContext
 
 --- Generator for musical figures via constraint solving.
 -- @type Generator
-Generator = class 'Generator' {
+Generator = class('Generator')({
   --- Creates a new Generator.
   -- @tparam Generator self
   -- @tparam table args Configuration table
@@ -68,7 +68,7 @@ Generator = class 'Generator' {
     local solver = ctx:get_solver()
 
     local result = solver:check()
-    if result == "sat" then
+    if result == 'sat' then
       local model = solver:get_model()
       return ctx:build_figure(model)
     end
@@ -87,7 +87,7 @@ Generator = class 'Generator' {
 
     while count < self.max_solutions do
       local result = solver:check()
-      if result ~= "sat" then
+      if result ~= 'sat' then
         break
       end
 
@@ -99,7 +99,7 @@ Generator = class 'Generator' {
 
       -- Add constraint to exclude this solution
       -- The next solution must differ in at least one variable (pitch, duration, or volume)
-      local exclusion = List{}
+      local exclusion = List({})
       for i, pitch_var in ipairs(ctx:get_pitch_vars()) do
         local current_val = model:get_value(pitch_var)
         exclusion:insert(pitch_var:ne(z3_ctx:int_val(current_val)))
@@ -128,12 +128,12 @@ Generator = class 'Generator' {
   -- @treturn boolean true if all rules pass
   -- @treturn List List of {rule=Rule, error=string} for failed rules
   validate = function(self, figure)
-    local failures = List{}
+    local failures = List({})
     for i, rule in ipairs(self.rules) do
       if rule.enabled then
         local ok, err = rule:validate(figure)
         if not ok then
-          failures:insert({rule = rule, error = err})
+          failures:insert({ rule = rule, error = err })
         end
       end
     end
@@ -141,9 +141,12 @@ Generator = class 'Generator' {
   end,
 
   __tostring = function(self)
-    return string.format('Generator{rules=%d, max_solutions=%d}',
-      #self.rules, self.max_solutions)
+    return string.format(
+      'Generator{rules=%d, max_solutions=%d}',
+      #self.rules,
+      self.max_solutions
+    )
   end,
-}
+})
 
 return _M

@@ -115,13 +115,16 @@ local function create_module_environment(using_modules)
   if using_modules then
     for i, using_module in ipairs(using_modules) do
       for k, v in pairs(using_module) do
-        assert(using_table[k] == nil,
-               string.format('key collision in using statement (%s)', k), 2)
+        assert(
+          using_table[k] == nil,
+          string.format('key collision in using statement (%s)', k),
+          2
+        )
         rawset(using_table, k, v)
       end
     end
   end
-  
+
   local environment = setmetatable({}, {
     __index = function(self, k)
       local result = rawget(module, k) or rawget(using_table, k) or _ENV[k]
@@ -139,6 +142,6 @@ local function create_module_environment(using_modules)
 end
 
 return {
-  create_module_environment=create_module_environment,
-  make_module_metatable=make_module_metatable,
+  create_module_environment = create_module_environment,
+  make_module_metatable = make_module_metatable,
 }

@@ -1,15 +1,15 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local channel = require 'musica.channel'
-local chord = require 'musica.chord'
-local figure = require 'musica.figure'
-local lilypond = require 'musica.lilypond'
-local llx = require 'llx'
-local meter = require 'musica.meter'
-local midi = require 'lua-midi'
-local note = require 'musica.note'
-local pitch = require 'musica.pitch'
-local tostringf_module = require 'llx.tostringf'
+local channel = require('musica.channel')
+local chord = require('musica.chord')
+local figure = require('musica.figure')
+local lilypond = require('musica.lilypond')
+local llx = require('llx')
+local meter = require('musica.meter')
+local midi = require('lua-midi')
+local note = require('musica.note')
+local pitch = require('musica.pitch')
+local tostringf_module = require('llx.tostringf')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -39,9 +39,9 @@ local MIDI_VOLUME_MAX <const> = 127.0
 --   * Coda https://en.wikipedia.org/wiki/Coda_(music)
 --   * Bridge https://en.wikipedia.org/wiki/Bridge_(music)
 
-Song = class 'Song' {
+Song = class('Song')({
   __init = function(self, args)
-    self.channels = args and args.channels or llx.List{}
+    self.channels = args and args.channels or llx.List({})
     -- Metadata for sheet music
     self.title = args and args.title or nil
     self.subtitle = args and args.subtitle or nil
@@ -69,7 +69,8 @@ Song = class 'Song' {
         if isinstance(event, midi.event.NoteEndEvent) then
           local note = assert(
             unfinished_notes[event.note_number],
-            'encountered NoteEndEvent without corresponding NoteBeginEvent')
+            'encountered NoteEndEvent without corresponding NoteBeginEvent'
+          )
           -- Maybe we should have an option to quantize this.
           note.duration = (time_in_ticks / midi_file.ticks) - note.time
         elseif isinstance(event, midi.event.NoteBeginEvent) then
@@ -85,22 +86,23 @@ Song = class 'Song' {
             -- (handles overlapping notes / re-triggers)
             local existing = unfinished_notes[event.note_number]
             if existing then
-              existing.duration = (time_in_ticks / midi_file.ticks) - existing.time
+              existing.duration = (time_in_ticks / midi_file.ticks)
+                - existing.time
               if existing.duration < 0.0625 then
-                existing.duration = 0.0625  -- Minimum 64th note duration
+                existing.duration = 0.0625 -- Minimum 64th note duration
               end
             end
-            local note = Note{
-              pitch=Pitch{midi_index=event.note_number},
-              time=time_in_ticks / midi_file.ticks,
-              duration=nil, -- Unknown until NoteEndEvent
-              volume=event.velocity / MIDI_VOLUME_MAX,
-            }
+            local note = Note({
+              pitch = Pitch({ midi_index = event.note_number }),
+              time = time_in_ticks / midi_file.ticks,
+              duration = nil, -- Unknown until NoteEndEvent
+              volume = event.velocity / MIDI_VOLUME_MAX,
+            })
             unfinished_notes[event.note_number] = note
             local channel = instrument_channel_map[current_instrument]
             if not channel then
               channel = self:make_channel(current_instrument)
-              channel.figure_instances:insert(FigureInstance(0, Figure{}))
+              channel.figure_instances:insert(FigureInstance(0, Figure({})))
               instrument_channel_map[current_instrument] = channel
             end
             local figure = assert(channel.figure_instances[1].figure)
@@ -143,7 +145,7 @@ Song = class 'Song' {
   __tomidifile = function(self)
     local midi_file = midi.MidiFile()
     for i, song_track in ipairs(self.channels) do
-      local events = llx.List{}
+      local events = llx.List({})
 
       -- Gather events
       local channel = i - 1 -- not sure if this is correct?
@@ -151,8 +153,10 @@ Song = class 'Song' {
         for k, adjusted_note in figure_instance:time_adjusted_notes() do
           local note_number = tointeger(adjusted_note.pitch)
           local volume_int = tointeger(adjusted_note.volume * MIDI_VOLUME_MAX)
-          local note_begin = midi.event.NoteBeginEvent(0, channel, note_number, volume_int)
-          local note_end = midi.event.NoteEndEvent(0, channel, note_number, volume_int)
+          local note_begin =
+            midi.event.NoteBeginEvent(0, channel, note_number, volume_int)
+          local note_end =
+            midi.event.NoteEndEvent(0, channel, note_number, volume_int)
           note_begin.time = adjusted_note.time
           note_end.time = adjusted_note:finish()
           events:insert(note_begin)
@@ -160,29 +164,31 @@ Song = class 'Song' {
         end
       end
 
-      events:sort(function(a, b) return a.time < b.time end)
+      events:sort(function(a, b)
+        return a.time < b.time
+      end)
 
       local midi_track = midi.Track()
       midi_file.tracks:insert(midi_track)
       local previous_time = 0
-      midi_track.events:insert(midi.event.ProgramChangeEvent(
-        0, channel, song_track.instrument.value))
+      midi_track.events:insert(
+        midi.event.ProgramChangeEvent(0, channel, song_track.instrument.value)
+      )
       for j, event in ipairs(events) do
         local beats = event.time - previous_time
         event.time_delta = math.floor(beats * midi_file.ticks)
         previous_time = event.time
         midi_track.events:insert(event)
       end
-      midi_track.events:insert(
-          midi.event.EndOfTrackEvent(0, 0x0F, {}))
+      midi_track.events:insert(midi.event.EndOfTrackEvent(0, 0x0F, {}))
     end
     return midi_file
   end,
 
   __tostringf = function(self, formatter)
-    formatter:table_cons 'Song' {
-      {'channels', self.channels},
-    }
+    formatter:table_cons('Song')({
+      { 'channels', self.channels },
+    })
   end,
 
   __tostring = function(self)
@@ -200,6 +206,6 @@ Song = class 'Song' {
   tolilypond = function(self)
     return lilypond.tolilypond(self)
   end,
-}
+})
 
 return _M

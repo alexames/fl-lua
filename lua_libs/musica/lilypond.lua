@@ -4,9 +4,9 @@
 -- Converts Song objects to LilyPond notation format for sheet music generation.
 -- @module musica.lilypond
 
-local accidental = require 'musica.accidental'
-local llx = require 'llx'
-local pitch_class = require 'musica.pitch_class'
+local accidental = require('musica.accidental')
+local llx = require('llx')
+local pitch_class = require('musica.pitch_class')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -29,7 +29,7 @@ local lilypond_pitch_names = {
 -- LilyPond uses c' for middle C (C4), c for C3, c, for C2, etc.
 -- Octave 4 = no marks (middle octave in LilyPond's relative mode)
 -- For absolute mode: c' is C4, c'' is C5, c is C3, c, is C2
-local LILYPOND_MIDDLE_OCTAVE = 3  -- LilyPond's unmarked octave is 3
+local LILYPOND_MIDDLE_OCTAVE = 3 -- LilyPond's unmarked octave is 3
 
 --- Convert accidentals to LilyPond suffix.
 -- @param accidentals Number of semitones sharp (+) or flat (-)
@@ -38,9 +38,9 @@ local function accidentals_to_lilypond(accidentals)
   if accidentals == 0 then
     return ''
   elseif accidentals > 0 then
-    return string.rep('is', accidentals)  -- sharp = 'is', double sharp = 'isis'
+    return string.rep('is', accidentals) -- sharp = 'is', double sharp = 'isis'
   else
-    return string.rep('es', -accidentals)  -- flat = 'es', double flat = 'eses'
+    return string.rep('es', -accidentals) -- flat = 'es', double flat = 'eses'
   end
 end
 
@@ -50,9 +50,9 @@ end
 local function octave_to_lilypond(octave)
   local diff = octave - LILYPOND_MIDDLE_OCTAVE
   if diff > 0 then
-    return string.rep("'", diff)  -- Higher octaves use apostrophes
+    return string.rep("'", diff) -- Higher octaves use apostrophes
   elseif diff < 0 then
-    return string.rep(",", -diff)  -- Lower octaves use commas
+    return string.rep(',', -diff) -- Lower octaves use commas
   else
     return ''
   end
@@ -79,30 +79,30 @@ local DURATION_TOLERANCE = 0.001
 duration_to_lilypond = function(duration)
   -- Standard durations in beats (quarter note = 1)
   local standard_durations = {
-    {beats = 4.0, lily = '1'},      -- whole note
-    {beats = 2.0, lily = '2'},      -- half note
-    {beats = 1.0, lily = '4'},      -- quarter note
-    {beats = 0.5, lily = '8'},      -- eighth note
-    {beats = 0.25, lily = '16'},    -- sixteenth note
-    {beats = 0.125, lily = '32'},   -- thirty-second note
-    {beats = 0.0625, lily = '64'},  -- sixty-fourth note
+    { beats = 4.0, lily = '1' }, -- whole note
+    { beats = 2.0, lily = '2' }, -- half note
+    { beats = 1.0, lily = '4' }, -- quarter note
+    { beats = 0.5, lily = '8' }, -- eighth note
+    { beats = 0.25, lily = '16' }, -- sixteenth note
+    { beats = 0.125, lily = '32' }, -- thirty-second note
+    { beats = 0.0625, lily = '64' }, -- sixty-fourth note
   }
 
   -- Dotted durations
   local dotted_durations = {
-    {beats = 6.0, lily = '1.'},     -- dotted whole
-    {beats = 3.0, lily = '2.'},     -- dotted half
-    {beats = 1.5, lily = '4.'},     -- dotted quarter
-    {beats = 0.75, lily = '8.'},    -- dotted eighth
-    {beats = 0.375, lily = '16.'},  -- dotted sixteenth
+    { beats = 6.0, lily = '1.' }, -- dotted whole
+    { beats = 3.0, lily = '2.' }, -- dotted half
+    { beats = 1.5, lily = '4.' }, -- dotted quarter
+    { beats = 0.75, lily = '8.' }, -- dotted eighth
+    { beats = 0.375, lily = '16.' }, -- dotted sixteenth
   }
 
   -- Double-dotted durations
   local double_dotted_durations = {
-    {beats = 7.0, lily = '1..'},    -- double-dotted whole
-    {beats = 3.5, lily = '2..'},    -- double-dotted half
-    {beats = 1.75, lily = '4..'},   -- double-dotted quarter
-    {beats = 0.875, lily = '8..'},  -- double-dotted eighth
+    { beats = 7.0, lily = '1..' }, -- double-dotted whole
+    { beats = 3.5, lily = '2..' }, -- double-dotted half
+    { beats = 1.75, lily = '4..' }, -- double-dotted quarter
+    { beats = 0.875, lily = '8..' }, -- double-dotted eighth
   }
 
   -- Check exact matches first (with tolerance)
@@ -182,7 +182,7 @@ end
 -- @param song A Song object
 -- @return LilyPond header block string
 header_to_lilypond = function(song)
-  local lines = {'\\header {'}
+  local lines = { '\\header {' }
 
   if song.title then
     table.insert(lines, string.format('  title = "%s"', song.title))
@@ -248,7 +248,7 @@ key_to_lilypond = function(key)
   end
   -- If key is a Scale object, extract the tonic and mode
   if key.tonic and key.mode then
-    local tonic_str = pitch_to_lilypond(key.tonic):gsub("[',]", "")  -- Remove octave marks
+    local tonic_str = pitch_to_lilypond(key.tonic):gsub("[',]", '') -- Remove octave marks
     local mode_str = key.mode.name or 'major'
     return string.format('\\key %s \\%s', tonic_str, mode_str:lower())
   end
@@ -283,12 +283,15 @@ local function group_simultaneous_notes(notes)
   local current_time = nil
 
   for _, note in ipairs(notes) do
-    if current_time == nil or math.abs(note.time - current_time) > DURATION_TOLERANCE then
+    if
+      current_time == nil
+      or math.abs(note.time - current_time) > DURATION_TOLERANCE
+    then
       -- New time point
       if current_group then
         table.insert(groups, current_group)
       end
-      current_group = {note}
+      current_group = { note }
       current_time = note.time
     else
       -- Same time point - add to chord
@@ -412,9 +415,9 @@ end
 part_to_lilypond = function(channel, song, part_id)
   local lines = {}
 
-  local part_name = channel.part_name or
-                    (channel.instrument and channel.instrument.name) or
-                    ('Part ' .. part_id)
+  local part_name = channel.part_name
+    or (channel.instrument and channel.instrument.name)
+    or ('Part ' .. part_id)
   local short_name = channel.short_name or part_name:sub(1, 3) .. '.'
 
   -- Music variable - use letter-based ID to avoid LilyPond parsing issues
@@ -510,13 +513,13 @@ tolilypond = function(song)
   local result = {}
 
   -- Generate conductor's score
-  result["Conductor"] = conductor_score_to_lilypond(song)
+  result['Conductor'] = conductor_score_to_lilypond(song)
 
   -- Generate individual parts
   for i, channel in ipairs(song.channels) do
-    local part_name = channel.part_name or
-                      (channel.instrument and channel.instrument.name) or
-                      ('Part ' .. i)
+    local part_name = channel.part_name
+      or (channel.instrument and channel.instrument.name)
+      or ('Part ' .. i)
     result[part_name] = standalone_part_to_lilypond(channel, song, i)
   end
 

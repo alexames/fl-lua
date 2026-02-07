@@ -4,9 +4,9 @@
 -- Provides logical operators (AND, OR, NOT) over rules.
 -- @module musica.generation.rules.composite
 
-local llx = require 'llx'
-local z3 = require 'z3'
-local rule_module = require 'musica.generation.rule'
+local llx = require('llx')
+local z3 = require('z3')
+local rule_module = require('musica.generation.rule')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -17,7 +17,7 @@ local Rule = rule_module.Rule
 
 --- Composite rule that requires ALL child rules to pass.
 -- @type AllOfRule
-AllOfRule = class 'AllOfRule' : extends(Rule) {
+AllOfRule = class('AllOfRule'):extends(Rule)({
   --- Creates a new AllOfRule.
   -- @tparam AllOfRule self
   -- @tparam table args Configuration table
@@ -25,7 +25,7 @@ AllOfRule = class 'AllOfRule' : extends(Rule) {
   -- @tparam[opt='all_of'] string args.name Rule name
   __init = function(self, args)
     args = args or {}
-    Rule.__init(self, {name = args.name or 'all_of'})
+    Rule.__init(self, { name = args.name or 'all_of' })
     self.rules = List(args.rules or {})
   end,
 
@@ -58,7 +58,7 @@ AllOfRule = class 'AllOfRule' : extends(Rule) {
   -- @tparam GenerationContext ctx The generation context
   -- @treturn z3.expr Z3 constraint expression
   to_z3 = function(self, ctx)
-    local constraints = List{}
+    local constraints = List({})
     for i, child_rule in ipairs(self.rules) do
       if child_rule.enabled then
         local c = child_rule:to_z3(ctx)
@@ -76,11 +76,11 @@ AllOfRule = class 'AllOfRule' : extends(Rule) {
   __tostring = function(self)
     return string.format('AllOfRule{%d rules}', #self.rules)
   end,
-}
+})
 
 --- Composite rule that requires ANY child rule to pass.
 -- @type AnyOfRule
-AnyOfRule = class 'AnyOfRule' : extends(Rule) {
+AnyOfRule = class('AnyOfRule'):extends(Rule)({
   --- Creates a new AnyOfRule.
   -- @tparam AnyOfRule self
   -- @tparam table args Configuration table
@@ -88,7 +88,7 @@ AnyOfRule = class 'AnyOfRule' : extends(Rule) {
   -- @tparam[opt='any_of'] string args.name Rule name
   __init = function(self, args)
     args = args or {}
-    Rule.__init(self, {name = args.name or 'any_of'})
+    Rule.__init(self, { name = args.name or 'any_of' })
     self.rules = List(args.rules or {})
   end,
 
@@ -121,7 +121,7 @@ AnyOfRule = class 'AnyOfRule' : extends(Rule) {
   -- @tparam GenerationContext ctx The generation context
   -- @treturn z3.expr Z3 constraint expression
   to_z3 = function(self, ctx)
-    local constraints = List{}
+    local constraints = List({})
     for i, child_rule in ipairs(self.rules) do
       if child_rule.enabled then
         local c = child_rule:to_z3(ctx)
@@ -139,18 +139,18 @@ AnyOfRule = class 'AnyOfRule' : extends(Rule) {
   __tostring = function(self)
     return string.format('AnyOfRule{%d rules}', #self.rules)
   end,
-}
+})
 
 --- Composite rule that negates a child rule.
 -- @type NotRule
-NotRule = class 'NotRule' : extends(Rule) {
+NotRule = class('NotRule'):extends(Rule)({
   --- Creates a new NotRule.
   -- @tparam NotRule self
   -- @tparam table args Configuration table
   -- @tparam Rule args.rule The rule to negate
   -- @tparam[opt='not'] string args.name Rule name
   __init = function(self, args)
-    Rule.__init(self, {name = args.name or 'not'})
+    Rule.__init(self, { name = args.name or 'not' })
     self.child = args.rule
   end,
 
@@ -162,7 +162,8 @@ NotRule = class 'NotRule' : extends(Rule) {
   validate = function(self, figure)
     local ok, _ = self.child:validate(figure)
     if ok then
-      return false, string.format('Child rule %s should have failed', self.child.name)
+      return false,
+        string.format('Child rule %s should have failed', self.child.name)
     end
     return true
   end,
@@ -182,6 +183,6 @@ NotRule = class 'NotRule' : extends(Rule) {
   __tostring = function(self)
     return string.format('NotRule{%s}', self.child.name)
   end,
-}
+})
 
 return _M

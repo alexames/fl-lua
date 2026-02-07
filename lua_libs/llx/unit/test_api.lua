@@ -3,12 +3,12 @@
 --
 -- @module llx.unit.test_api
 
-local llx = require 'llx'
-local test = require 'llx.unit.test'
-local matchers = require 'llx.unit.matchers'
-local mock_module = require 'llx.unit.mock'
-local truthy, falsey = require 'llx.truthy' {'truthy', 'falsey'}
-local functional = require 'llx.functional'
+local llx = require('llx')
+local test = require('llx.unit.test')
+local matchers = require('llx.unit.matchers')
+local mock_module = require('llx.unit.mock')
+local truthy, falsey = require('llx.truthy')({ 'truthy', 'falsey' })
+local functional = require('llx.functional')
 
 local class = llx.class
 local Mock = mock_module.Mock
@@ -19,10 +19,21 @@ local function evaluate_matcher(actual, matcher, level)
   level = level or 3
   local result = matcher(actual)
   if type(result) ~= 'table' or result.pass == nil then
-    error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', level)
+    error(
+      'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+      level
+    )
   end
   if not result.pass then
-    error('expected ' .. result.actual .. '\nto ' .. result.positive_message .. '\n  ' .. result.expected, level)
+    error(
+      'expected '
+        .. result.actual
+        .. '\nto '
+        .. result.positive_message
+        .. '\n  '
+        .. result.expected,
+      level
+    )
   end
 end
 
@@ -30,7 +41,7 @@ end
 local describe_context_stack = {}
 
 -- Global test suites registered via describe
-local test_suites = llx.Table{}
+local test_suites = llx.Table({})
 
 -- Global lifecycle hooks
 local global_before_all_hooks = {}
@@ -55,8 +66,8 @@ local function expect(actual)
     if type(matcher_creator) ~= 'function' then
       return nil
     end
-    
-      return function(...)
+
+    return function(...)
       local matcher = matcher_creator(...)
       if negated then
         matcher = matchers.negate(matcher)
@@ -74,11 +85,14 @@ local function expect(actual)
         return function(expected)
           local level = 3
           if type(expect_obj._actual) ~= 'function' then
-            error('throw() expects a function, got ' .. type(expect_obj._actual), level)
+            error(
+              'throw() expects a function, got ' .. type(expect_obj._actual),
+              level
+            )
           end
-          
+
           local successful, exception = pcall(expect_obj._actual)
-          
+
           -- Expect function to throw
           if expected then
             local exception_msg = exception
@@ -89,7 +103,11 @@ local function expect(actual)
                 exception_msg = exception:sub(line_colon + 2)
               end
             end
-            evaluate_matcher(exception_msg, matchers.equals(expected), level + 1)
+            evaluate_matcher(
+              exception_msg,
+              matchers.equals(expected),
+              level + 1
+            )
           end
           if successful then
             error('expected function to raise error', level)
@@ -115,7 +133,7 @@ local function expect(actual)
         end
       end
       return nil
-    end
+    end,
   })
 
   local to_not_proxy = {}
@@ -126,11 +144,18 @@ local function expect(actual)
         return function(expected)
           local level = 3
           if type(expect_obj._actual) ~= 'function' then
-            error('throw() expects a function, got ' .. type(expect_obj._actual), level)
+            error(
+              'throw() expects a function, got ' .. type(expect_obj._actual),
+              level
+            )
           end
           local successful, exception = pcall(expect_obj._actual)
           if not successful then
-            error('expected function not to raise error, but got: ' .. tostring(exception), level)
+            error(
+              'expected function not to raise error, but got: '
+                .. tostring(exception),
+              level
+            )
           end
         end
       elseif key == 'match' then
@@ -139,11 +164,19 @@ local function expect(actual)
         end
       elseif key == 'satisfy' then
         return function(...)
-          evaluate_matcher(expect_obj._actual, matchers.negate(matchers.all_of(...)), 3)
+          evaluate_matcher(
+            expect_obj._actual,
+            matchers.negate(matchers.all_of(...)),
+            3
+          )
         end
       elseif key == 'satisfy_any' then
         return function(...)
-          evaluate_matcher(expect_obj._actual, matchers.negate(matchers.any_of(...)), 3)
+          evaluate_matcher(
+            expect_obj._actual,
+            matchers.negate(matchers.any_of(...)),
+            3
+          )
         end
       else
         -- Look up in custom_matchers
@@ -153,7 +186,7 @@ local function expect(actual)
         end
       end
       return nil
-    end
+    end,
   })
 
   expect_obj.to = to_proxy
@@ -173,10 +206,14 @@ custom_matchers.match_pattern = matchers.matches
 custom_matchers.start_with = matchers.starts_with
 custom_matchers.end_with = matchers.ends_with
 custom_matchers.have_length = matchers.has_length
-custom_matchers.be_empty = function() return matchers.is_empty() end
+custom_matchers.be_empty = function()
+  return matchers.is_empty()
+end
 custom_matchers.have_size = matchers.has_size
 custom_matchers.contain_element = matchers.contains_element
-custom_matchers.be_nil = function() return matchers.equals(nil) end
+custom_matchers.be_nil = function()
+  return matchers.equals(nil)
+end
 custom_matchers.be_truthy = function()
   return function(actual)
     return {
@@ -184,7 +221,7 @@ custom_matchers.be_truthy = function()
       actual = tostring(actual),
       positive_message = 'be truthy',
       negative_message = 'be not truthy',
-      expected = 'truthy value'
+      expected = 'truthy value',
     }
   end
 end
@@ -195,7 +232,7 @@ custom_matchers.be_falsy = function()
       actual = tostring(actual),
       positive_message = 'be falsy',
       negative_message = 'be not falsy',
-      expected = 'falsy value'
+      expected = 'falsy value',
     }
   end
 end
@@ -206,7 +243,7 @@ custom_matchers.be_true = function()
       actual = tostring(actual),
       positive_message = 'be true',
       negative_message = 'be not true',
-      expected = 'true'
+      expected = 'true',
     }
   end
 end
@@ -217,15 +254,21 @@ custom_matchers.be_false = function()
       actual = tostring(actual),
       positive_message = 'be false',
       negative_message = 'be not false',
-      expected = 'false'
+      expected = 'false',
     }
   end
 end
 custom_matchers.be_near = matchers.near
-custom_matchers.be_positive = function() return matchers.is_positive() end
-custom_matchers.be_negative = function() return matchers.is_negative() end
+custom_matchers.be_positive = function()
+  return matchers.is_positive()
+end
+custom_matchers.be_negative = function()
+  return matchers.is_negative()
+end
 custom_matchers.be_between = matchers.is_between
-custom_matchers.be_nan = function() return matchers.is_nan() end
+custom_matchers.be_nan = function()
+  return matchers.is_nan()
+end
 custom_matchers.be_of_type = matchers.is_of_type
 
 -- New matchers
@@ -268,11 +311,11 @@ local function match_args(actual_args, expected_args)
   if #actual_args ~= #expected_args then
     return false
   end
-  
+
   -- Iterate through all arguments (ipairs handles nil correctly)
   for i, expected in ipairs(expected_args) do
     local actual = actual_args[i]
-    
+
     -- Handle nil values explicitly
     if expected == nil and actual ~= nil then
       return false
@@ -280,11 +323,14 @@ local function match_args(actual_args, expected_args)
       return false
     elseif expected == nil and actual == nil then
       -- Both nil, continue to next argument
-    -- If expected is a matcher function, use it
+      -- If expected is a matcher function, use it
     elseif type(expected) == 'function' then
       local result = expected(actual)
       if type(result) ~= 'table' or result.pass == nil then
-        error('Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields', 2)
+        error(
+          'Matcher must return a table with pass, actual, positive_message, negative_message, and expected fields',
+          2
+        )
       end
       if not result.pass then
         return false
@@ -294,7 +340,7 @@ local function match_args(actual_args, expected_args)
       return false
     end
   end
-  
+
   return true
 end
 
@@ -310,7 +356,7 @@ custom_matchers.have_been_called = function()
       actual = tostring(count) .. ' call(s)',
       positive_message = 'have been called',
       negative_message = 'not have been called',
-      expected = 'at least 1 call'
+      expected = 'at least 1 call',
     }
   end
 end
@@ -326,13 +372,13 @@ custom_matchers.have_been_called_times = function(expected)
       actual = tostring(count) .. ' call(s)',
       positive_message = 'have been called',
       negative_message = 'not have been called',
-      expected = tostring(expected) .. ' call(s)'
+      expected = tostring(expected) .. ' call(s)',
     }
   end
 end
 
 custom_matchers.have_been_called_with = function(...)
-  local expected_args = {...}
+  local expected_args = { ... }
   return function(actual)
     if not is_mock(actual) then
       error('have_been_called_with() expects a Mock, got ' .. type(actual), 3)
@@ -345,7 +391,7 @@ custom_matchers.have_been_called_with = function(...)
           actual = 'mock was called',
           positive_message = 'have been called with',
           negative_message = 'not have been called with',
-          expected = 'arguments matching the call'
+          expected = 'arguments matching the call',
         }
       end
     end
@@ -354,16 +400,19 @@ custom_matchers.have_been_called_with = function(...)
       actual = 'mock was not called with matching arguments',
       positive_message = 'have been called with',
       negative_message = 'not have been called with',
-      expected = 'arguments matching: ' .. format_args(expected_args)
+      expected = 'arguments matching: ' .. format_args(expected_args),
     }
   end
 end
 
 custom_matchers.have_been_last_called_with = function(...)
-  local expected_args = {...}
+  local expected_args = { ... }
   return function(actual)
     if not is_mock(actual) then
-      error('have_been_last_called_with() expects a Mock, got ' .. type(actual), 3)
+      error(
+        'have_been_last_called_with() expects a Mock, got ' .. type(actual),
+        3
+      )
     end
     local last_call = actual:get_last_call()
     if not last_call then
@@ -372,7 +421,7 @@ custom_matchers.have_been_last_called_with = function(...)
         actual = 'mock was never called',
         positive_message = 'have been last called with',
         negative_message = 'not have been last called with',
-        expected = 'arguments matching: ' .. format_args(expected_args)
+        expected = 'arguments matching: ' .. format_args(expected_args),
       }
     end
     local matched = match_args(last_call.args, expected_args)
@@ -381,7 +430,7 @@ custom_matchers.have_been_last_called_with = function(...)
       actual = 'last call was with: ' .. format_args(last_call.args),
       positive_message = 'have been last called with',
       negative_message = 'not have been last called with',
-      expected = 'arguments matching: ' .. format_args(expected_args)
+      expected = 'arguments matching: ' .. format_args(expected_args),
     }
   end
 end
@@ -389,30 +438,47 @@ end
 custom_matchers.have_been_nth_called_with = function(n, ...)
   -- Validate n is a positive integer
   if type(n) ~= 'number' or n < 1 or math.floor(n) ~= n then
-    error('have_been_nth_called_with() expects a positive integer as first argument, got ' .. tostring(n), 3)
+    error(
+      'have_been_nth_called_with() expects a positive integer as first argument, got '
+        .. tostring(n),
+      3
+    )
   end
-  local expected_args = {...}
+  local expected_args = { ... }
   return function(actual)
     if not is_mock(actual) then
-      error('have_been_nth_called_with() expects a Mock, got ' .. type(actual), 3)
+      error(
+        'have_been_nth_called_with() expects a Mock, got ' .. type(actual),
+        3
+      )
     end
     local call = actual:get_call(n)
     if not call then
       return {
         pass = false,
-        actual = 'mock was called ' .. tostring(actual:get_call_count()) .. ' time(s)',
+        actual = 'mock was called '
+          .. tostring(actual:get_call_count())
+          .. ' time(s)',
         positive_message = 'have been nth called with',
         negative_message = 'not have been nth called with',
-        expected = 'call #' .. tostring(n) .. ' with arguments matching: ' .. format_args(expected_args)
+        expected = 'call #'
+          .. tostring(n)
+          .. ' with arguments matching: '
+          .. format_args(expected_args),
       }
     end
     local matched = match_args(call.args, expected_args)
     return {
       pass = matched,
-      actual = 'call #' .. tostring(n) .. ' was with: ' .. format_args(call.args),
+      actual = 'call #' .. tostring(n) .. ' was with: ' .. format_args(
+        call.args
+      ),
       positive_message = 'have been nth called with',
       negative_message = 'not have been nth called with',
-      expected = 'call #' .. tostring(n) .. ' with arguments matching: ' .. format_args(expected_args)
+      expected = 'call #'
+        .. tostring(n)
+        .. ' with arguments matching: '
+        .. format_args(expected_args),
     }
   end
 end
@@ -421,11 +487,11 @@ end
 -- These are handled directly in the proxy __index functions
 
 --- Test class for describe/it style tests
-local TestSuite = class 'TestSuite':extends(test.Test) {
+local TestSuite = class('TestSuite'):extends(test.Test)({
   __init = function(self, suite_name, tests, nested_suite_classes, name_path)
     -- Set test data before calling base __init, which calls gather_tests()
     self._name = suite_name
-    self._name_path = name_path or {suite_name}
+    self._name_path = name_path or { suite_name }
     self._tests_data = tests or {}
     self._nested_suite_classes = nested_suite_classes or {}
     self._before_all_run = false
@@ -436,7 +502,7 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
         nested_class.__name,
         nested_class.__tests_data,
         nested_class.__nested_suites or {},
-        nested_class.__name_path or {nested_class.__name}
+        nested_class.__name_path or { nested_class.__name }
       )
       table.insert(self._nested_suites, nested_instance)
     end
@@ -462,17 +528,17 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
       -- Skip tests marked as skip
       if test_case.skip then
         -- Don't add to result
-      -- If there are 'only' tests, only include those
+        -- If there are 'only' tests, only include those
       elseif has_only and not test_case.only then
         -- Don't add to result
       else
         result:insert({
           index = test_index,
-          name = test_case.name_path or {test_case.name},
+          name = test_case.name_path or { test_case.name },
           func = test_case.func,
-          suite = self,  -- Track which suite this test belongs to
+          suite = self, -- Track which suite this test belongs to
           skip = test_case.skip,
-          only = test_case.only
+          only = test_case.only,
         })
         test_index = test_index + 1
       end
@@ -486,9 +552,9 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
           index = test_index,
           name = nested_test.name,
           func = nested_test.func,
-          suite = nested_test.suite or nested_suite,  -- Track nested suite
+          suite = nested_test.suite or nested_suite, -- Track nested suite
           skip = nested_test.skip,
-          only = nested_test.only
+          only = nested_test.only,
         })
         test_index = test_index + 1
       end
@@ -496,20 +562,24 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
 
     return result
   end,
-  
+
   -- Override name() to return the full path
   name = function(self)
     return table.concat(self._name_path, ' > ')
   end,
-  
+
   -- Override run_tests to add beforeAll/afterAll support
   run_tests = function(self, printer)
     if not self._initialized then
-      error(string.format('a test suite was not initialized. '
-                          .. 'Remember to call `self.Test.__init`'),
-            3)
+      error(
+        string.format(
+          'a test suite was not initialized. '
+            .. 'Remember to call `self.Test.__init`'
+        ),
+        3
+      )
     end
-    
+
     -- Run beforeAll hook once before all tests
     local before_all = getmetatable(self).__before_all
     if before_all and before_all ~= llx.noop and not self._before_all_run then
@@ -521,12 +591,12 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
       end
       self._before_all_run = true
     end
-    
+
     printer.class_preamble(self)
     local failure_count = 0
     local current_suite = nil
     local suite_before_all_run = {}
-    
+
     for _, test in pairs(self._tests) do
       -- Run beforeAll for the test's suite if it's different from current
       local test_suite = test.suite or self
@@ -543,7 +613,7 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
           end
         end
       end
-      
+
       if test.arguments == nil or #test.arguments == 0 then
         local successful = self:run_test(printer, test)
         if not successful then
@@ -551,16 +621,17 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
         end
       else
         for _, arguments in product(table.unpack(test.arguments)) do
-          local successful = self:run_test(printer, test, table.unpack(arguments))
+          local successful =
+            self:run_test(printer, test, table.unpack(arguments))
           if not successful then
             failure_count = failure_count + 1
           end
         end
       end
     end
-    
+
     -- Run afterAll hooks for all suites that had tests
-    local suites_to_cleanup = {[self] = true}
+    local suites_to_cleanup = { [self] = true }
     for suite, _ in pairs(suite_before_all_run) do
       suites_to_cleanup[suite] = true
     end
@@ -570,12 +641,12 @@ local TestSuite = class 'TestSuite':extends(test.Test) {
         pcall(after_all)
       end
     end
-    
+
     printer.class_conclusion(self, failure_count)
-    
+
     return failure_count, #self._tests
   end,
-}
+})
 
 --- Registers a test case within the current describe context
 -- @param name Test name
@@ -600,7 +671,7 @@ local function it_impl(name, func, skip, only)
     name_path = name_path,
     func = func,
     skip = skip,
-    only = only
+    only = only,
   })
 end
 
@@ -611,21 +682,21 @@ local it = setmetatable({
   end,
   only = function(name, func)
     return it_impl(name, func, false, true)
-  end
+  end,
 }, {
   __call = function(_, name, func, skip, only)
     return it_impl(name, func, skip, only)
-  end
+  end,
 })
 
 -- Alias for it
 local test = setmetatable({
   skip = it.skip,
-  only = it.only
+  only = it.only,
 }, {
   __call = function(_, name, func, skip, only)
     return it_impl(name, func, skip, only)
-  end
+  end,
 })
 
 --- Creates a test suite (describe block)
@@ -668,11 +739,11 @@ local function describe_impl(name, func, skip, only)
   end
 
   -- Create a test class for this suite
-  local suite_class = class(table.concat(name_path, '_')):extends(TestSuite) {
+  local suite_class = class(table.concat(name_path, '_')):extends(TestSuite)({
     __init = function(self, suite_name, tests, nested_suites, name_path)
       TestSuite.__init(self, suite_name, tests, nested_suites, name_path)
     end,
-  }
+  })
 
   -- Store the test data for later instantiation
   suite_class.__tests_data = context.tests
@@ -709,11 +780,11 @@ local describe = setmetatable({
   end,
   only = function(name, func)
     return describe_impl(name, func, false, true)
-  end
+  end,
 }, {
   __call = function(_, name, func, skip, only)
     return describe_impl(name, func, skip, only)
-  end
+  end,
 })
 
 --- Setup function for the current describe block
@@ -778,7 +849,7 @@ end
 -- @param[opt] filter A string to match against test suite names
 -- @param[opt] logger An optional logger object to capture output
 local function run_tests(filter, logger)
-  local test_logger = require 'llx.unit.test_logger'
+  local test_logger = require('llx.unit.test_logger')
   logger = logger or test_logger.HierarchicalLogger()
   local total_failure_count = 0
   local total_test_count = 0
@@ -805,16 +876,16 @@ local function run_tests(filter, logger)
     -- Skip suites marked as skip
     if cls.__skip then
       -- Don't run
-    -- If there are 'only' suites, only run those
+      -- If there are 'only' suites, only run those
     elseif has_only_suites and not cls.__only then
       -- Don't run
-    -- Apply name filter if provided
+      -- Apply name filter if provided
     elseif not filter or cls.__name:match(filter) then
       local test_object = cls(
         cls.__name,
         cls.__tests_data,
         cls.__nested_suites or {},
-        cls.__name_path or {cls.__name}
+        cls.__name_path or { cls.__name }
       )
       local failed_tests, tests_ran = test_object:run_tests(logger)
       total_failure_count = total_failure_count + failed_tests
@@ -846,4 +917,3 @@ return {
   test_suites = test_suites,
   matchers = custom_matchers,
 }
-

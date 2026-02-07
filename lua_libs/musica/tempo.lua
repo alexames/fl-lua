@@ -4,7 +4,7 @@
 -- Provides utilities for working with musical tempo markings and BPM.
 -- @module musica.tempo
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -12,25 +12,25 @@ local class = llx.class
 
 -- Tempo markings with typical BPM ranges
 local tempo_markings = {
-  grave = {min = 25, max = 45, typical = 35},
-  largo = {min = 40, max = 60, typical = 50},
-  lento = {min = 45, max = 60, typical = 53},
-  larghetto = {min = 60, max = 66, typical = 63},
-  adagio = {min = 66, max = 76, typical = 71},
-  adagietto = {min = 70, max = 80, typical = 75},
-  andante = {min = 76, max = 108, typical = 92},
-  andantino = {min = 80, max = 108, typical = 94},
-  moderato = {min = 108, max = 120, typical = 114},
-  allegretto = {min = 112, max = 120, typical = 116},
-  allegro = {min = 120, max = 156, typical = 138},
-  vivace = {min = 156, max = 176, typical = 166},
-  presto = {min = 168, max = 200, typical = 184},
-  prestissimo = {min = 200, max = 240, typical = 220},
+  grave = { min = 25, max = 45, typical = 35 },
+  largo = { min = 40, max = 60, typical = 50 },
+  lento = { min = 45, max = 60, typical = 53 },
+  larghetto = { min = 60, max = 66, typical = 63 },
+  adagio = { min = 66, max = 76, typical = 71 },
+  adagietto = { min = 70, max = 80, typical = 75 },
+  andante = { min = 76, max = 108, typical = 92 },
+  andantino = { min = 80, max = 108, typical = 94 },
+  moderato = { min = 108, max = 120, typical = 114 },
+  allegretto = { min = 112, max = 120, typical = 116 },
+  allegro = { min = 120, max = 156, typical = 138 },
+  vivace = { min = 156, max = 176, typical = 166 },
+  presto = { min = 168, max = 200, typical = 184 },
+  prestissimo = { min = 200, max = 240, typical = 220 },
 }
 
 --- Tempo class representing musical tempo.
 -- @type Tempo
-Tempo = class 'Tempo' {
+Tempo = class('Tempo')({
   --- Constructor.
   -- @function Tempo:__init
   -- @tparam Tempo self
@@ -72,7 +72,11 @@ Tempo = class 'Tempo' {
   -- @return String describing the tempo
   describe = function(self)
     if self.marking then
-      return string.format('%s (%d BPM)', self.marking:gsub('^%l', string.upper), self.bpm)
+      return string.format(
+        '%s (%d BPM)',
+        self.marking:gsub('^%l', string.upper),
+        self.bpm
+      )
     else
       return string.format('%d BPM', self.bpm)
     end
@@ -95,22 +99,22 @@ Tempo = class 'Tempo' {
   __tostring = function(self)
     return self:describe()
   end,
-}
+})
 
 -- Common tempo constants
-grave = Tempo{marking = 'grave'}
-largo = Tempo{marking = 'largo'}
-lento = Tempo{marking = 'lento'}
-larghetto = Tempo{marking = 'larghetto'}
-adagio = Tempo{marking = 'adagio'}
-adagietto = Tempo{marking = 'adagietto'}
-andante = Tempo{marking = 'andante'}
-andantino = Tempo{marking = 'andantino'}
-moderato = Tempo{marking = 'moderato'}
-allegretto = Tempo{marking = 'allegretto'}
-allegro = Tempo{marking = 'allegro'}
-vivace = Tempo{marking = 'vivace'}
-presto = Tempo{marking = 'presto'}
-prestissimo = Tempo{marking = 'prestissimo'}
+grave = Tempo({ marking = 'grave' })
+largo = Tempo({ marking = 'largo' })
+lento = Tempo({ marking = 'lento' })
+larghetto = Tempo({ marking = 'larghetto' })
+adagio = Tempo({ marking = 'adagio' })
+adagietto = Tempo({ marking = 'adagietto' })
+andante = Tempo({ marking = 'andante' })
+andantino = Tempo({ marking = 'andantino' })
+moderato = Tempo({ marking = 'moderato' })
+allegretto = Tempo({ marking = 'allegretto' })
+allegro = Tempo({ marking = 'allegro' })
+vivace = Tempo({ marking = 'vivace' })
+presto = Tempo({ marking = 'presto' })
+prestissimo = Tempo({ marking = 'prestissimo' })
 
 return _M

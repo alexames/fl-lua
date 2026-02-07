@@ -1,16 +1,16 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local cache_module = require 'llx.cache'
-local class_module = require 'llx.class'
-local decorator = require 'llx.decorator'
-local environment = require 'llx.environment'
-local getclass_module = require 'llx.getclass'
-local hash = require 'llx.hash'
-local isinstance_module = require 'llx.isinstance'
-local list = require 'llx.types.list'
-local tuple = require 'llx.tuple'
+local cache_module = require('llx.cache')
+local class_module = require('llx.class')
+local decorator = require('llx.decorator')
+local environment = require('llx.environment')
+local getclass_module = require('llx.getclass')
+local hash = require('llx.hash')
+local isinstance_module = require('llx.isinstance')
+local list = require('llx.types.list')
+local tuple = require('llx.tuple')
 
-local dump_value = require 'llx.debug.dump_value' . dump_value
+local dump_value = require('llx.debug.dump_value').dump_value
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -22,7 +22,7 @@ local isinstance = isinstance_module.isinstance
 local List = list.List
 local Tuple = tuple.Tuple
 
-RegisteredFunction = class 'RegisteredFunction' {
+RegisteredFunction = class('RegisteredFunction')({
   __init = function(self, name, func)
     self.name = name
     self._func = func
@@ -41,9 +41,9 @@ RegisteredFunction = class 'RegisteredFunction' {
   __tostring = function(self)
     return self.name
   end,
-}
+})
 
-FunctionRegistry = class 'FunctionRegistry' {
+FunctionRegistry = class('FunctionRegistry')({
   __init = function(self, name)
     rawset(self, '__name', name)
   end,
@@ -52,10 +52,17 @@ FunctionRegistry = class 'FunctionRegistry' {
     assert(type(key) == 'string' and type(value) == 'function')
     rawset(self, key, RegisteredFunction(self.__name .. '.' .. key, value))
   end,
-}
+})
 
-InvocationGraphEdge = class 'InvocationGraphEdge' {
-  __init = function(self, source_node, source_slot, destination_node, destination_slot, expected_type)
+InvocationGraphEdge = class('InvocationGraphEdge')({
+  __init = function(
+    self,
+    source_node,
+    source_slot,
+    destination_node,
+    destination_slot,
+    expected_type
+  )
     self.source_node = source_node
     self.source_slot = source_slot
     self.destination_node = destination_node
@@ -64,13 +71,17 @@ InvocationGraphEdge = class 'InvocationGraphEdge' {
   end,
 
   __tostring = function(self)
-    return string.format('InvocationGraphEdge(%s, %s, %s, %s)',
-      self.source_node, self.source_slot, self.destination_node, 
-      self.destination_slot)
+    return string.format(
+      'InvocationGraphEdge(%s, %s, %s, %s)',
+      self.source_node,
+      self.source_slot,
+      self.destination_node,
+      self.destination_slot
+    )
   end,
-}
+})
 
-InvocationGraphNode = class 'InvocationGraphNode' {
+InvocationGraphNode = class('InvocationGraphNode')({
   __init = function(self, func)
     self.func = func
     self.argument_edges = {}
@@ -79,17 +90,20 @@ InvocationGraphNode = class 'InvocationGraphNode' {
   __tostring = function(self)
     return string.format('InvocationGraphNode(%s)', self.func)
   end,
-}
+})
 
-InvocationGraph = class 'InvocationGraph' {
+InvocationGraph = class('InvocationGraph')({
   __init = function(self, args)
-    self.nodes = args and args.nodes or List{}
-    self.edges = args and args.edges or List{}
+    self.nodes = args and args.nodes or List({})
+    self.edges = args and args.edges or List({})
   end,
 
   __tostring = function(self)
     return string.format(
-      'InvocationGraph{nodes=%s,edges=%s}', self.nodes, self.edges)
+      'InvocationGraph{nodes=%s,edges=%s}',
+      self.nodes,
+      self.edges
+    )
   end,
 
   __call = function(self, args)
@@ -106,18 +120,18 @@ InvocationGraph = class 'InvocationGraph' {
         end
         arguments[i] = node_results[src_slot]
       end
-      return {node.func(table.unpack(arguments))}
+      return { node.func(table.unpack(arguments)) }
     end
 
-    local results = {} 
+    local results = {}
     for i, node in ipairs(self.nodes) do
       results[i] = results[i] or eval_node(results, self.nodes, i)
     end
     return results
   end,
-}
+})
 
-TracedValue = class 'TracedValue' {
+TracedValue = class('TracedValue')({
   __init = function(self, value, source, index)
     self.value = value
     self.source = source
@@ -160,15 +174,18 @@ TracedValue = class 'TracedValue' {
         local src_slot = argument.index
         local dst_node = target_node_index
         local dst_slot = i
-        graph.edges:insert(InvocationGraphEdge(src_node, src_slot, dst_node, dst_slot))
-        target_node.argument_edges[i] = {src_node=src_node, src_slot=src_slot}
+        graph.edges:insert(
+          InvocationGraphEdge(src_node, src_slot, dst_node, dst_slot)
+        )
+        target_node.argument_edges[i] =
+          { src_node = src_node, src_slot = src_slot }
       end
     end
     return graph
   end,
-}
+})
 
-TracedFunctionInvocation = class 'TracedFunctionInvocation' {
+TracedFunctionInvocation = class('TracedFunctionInvocation')({
   __init = function(self, func, arguments, invocation_id)
     self.func = func
     self.arguments = arguments
@@ -178,10 +195,13 @@ TracedFunctionInvocation = class 'TracedFunctionInvocation' {
 
   __tostring = function(self)
     return string.format(
-      'TracedFunctionInvocation(%s(%s), %s)', self.func, 
-      table.concat(self.arguments, ','), self.invocation_id)
+      'TracedFunctionInvocation(%s(%s), %s)',
+      self.func,
+      table.concat(self.arguments, ','),
+      self.invocation_id
+    )
   end,
-}
+})
 
 local invocation_id = 1
 local function get_invocation_id()
@@ -190,7 +210,8 @@ local function get_invocation_id()
   return result
 end
 
-local parameters = TracedFunctionInvocation('Parameters', {}, get_invocation_id())
+local parameters =
+  TracedFunctionInvocation('Parameters', {}, get_invocation_id())
 local parameters_index = 1
 
 function TracedParameter(value)
@@ -199,13 +220,15 @@ function TracedParameter(value)
   return traced_value
 end
 
-TracedValuePack = class 'TracedValuePack' {
+TracedValuePack = class('TracedValuePack')({
   __init = function(self, args)
     local constants_values = {}
-    local function constants_fn() return table.unpack(constants_values) end
-    local constants = TracedFunctionInvocation(constants_fn, {}, get_invocation_id())
+    local function constants_fn()
+      return table.unpack(constants_values)
+    end
+    local constants =
+      TracedFunctionInvocation(constants_fn, {}, get_invocation_id())
     local constants_index = 1
-
 
     local raw_arguments = {}
     local traced_arguments = {}
@@ -227,13 +250,12 @@ TracedValuePack = class 'TracedValuePack' {
   __index = function(self, k)
     return self.traced_arguments[k] or TracedValuePack.__defaultindex(self, k)
   end,
-}
+})
 
-Tracer = class 'Tracer' : extends(Decorator) {
+Tracer = class('Tracer'):extends(Decorator)({
   class_registries = {},
 
-  _process_arguments = function(args)
-  end,
+  _process_arguments = function(args) end,
 
   _getfunctionregistry = function(class_table)
     local registry = Tracer.class_registries[class_table]
@@ -252,12 +274,14 @@ Tracer = class 'Tracer' : extends(Decorator) {
     local registered_function = registry[name]
     -- Trace the values and results.
     local function wrapped_function(...)
-      local argument_pack = TracedValuePack{...}
+      local argument_pack = TracedValuePack({ ... })
       local traced_function = TracedFunctionInvocation(
-        registered_function, argument_pack.traced_arguments,
-        get_invocation_id())
-      local raw_results = 
-        {registered_function(table.unpack(argument_pack.raw_arguments))}
+        registered_function,
+        argument_pack.traced_arguments,
+        get_invocation_id()
+      )
+      local raw_results =
+        { registered_function(table.unpack(argument_pack.raw_arguments)) }
       local traced_results = {}
       for i, raw_result in ipairs(raw_results) do
         traced_results[i] = TracedValue(raw_result, traced_function, i)
@@ -266,7 +290,7 @@ Tracer = class 'Tracer' : extends(Decorator) {
     end
     return class_table, name, wrapped_function
   end,
-}
+})
 tracer = Tracer()
 
 return _M

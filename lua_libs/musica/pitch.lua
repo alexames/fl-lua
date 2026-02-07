@@ -7,12 +7,12 @@
 -- a new Pitch, and subtracting two Pitches yields a PitchInterval.
 -- @module musica.pitch
 
-local accidental = require 'musica.accidental'
-local llx = require 'llx'
-local pitch_class = require 'musica.pitch_class'
-local pitch_interval = require 'musica.pitch_interval'
-local pitch_util = require 'musica.pitch_util'
-local tostringf_module = require 'llx.tostringf'
+local accidental = require('musica.accidental')
+local llx = require('llx')
+local pitch_class = require('musica.pitch_class')
+local pitch_interval = require('musica.pitch_interval')
+local pitch_util = require('musica.pitch_util')
+local tostringf_module = require('llx.tostringf')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -49,7 +49,7 @@ local lowest_pitch_indices = {
 -- represent a specific frequency. Pitches can be compared, added to
 -- intervals, and converted to/from MIDI note numbers.
 -- @type Pitch
-Pitch = class 'Pitch' {
+Pitch = class('Pitch')({
   --- Creates a new Pitch.
   -- Can be constructed from pitch_class/octave/accidentals, from a
   -- pitch_index (MIDI-like absolute number), or from a midi_index.
@@ -73,12 +73,17 @@ Pitch = class 'Pitch' {
     local midi_index = args.midi_index
     if midi_index then
       local pitch_classes = {
-        [0] = PitchClass.C, PitchClass.C,
-        PitchClass.D, PitchClass.D,
+        [0] = PitchClass.C,
+        PitchClass.C,
+        PitchClass.D,
+        PitchClass.D,
         PitchClass.E,
-        PitchClass.F, PitchClass.F,
-        PitchClass.G, PitchClass.G,
-        PitchClass.A, PitchClass.A,
+        PitchClass.F,
+        PitchClass.F,
+        PitchClass.G,
+        PitchClass.G,
+        PitchClass.A,
+        PitchClass.A,
         PitchClass.B,
       }
       pitch_index = midi_index
@@ -89,7 +94,8 @@ Pitch = class 'Pitch' {
     self.pitch_class = pitch_class
     self.octave = octave
     if pitch_index then
-      local natural_pitch = lowest_pitch_indices[pitch_class] + (self.octave * 12)
+      local natural_pitch = lowest_pitch_indices[pitch_class]
+        + (self.octave * 12)
       self.accidentals = pitch_index - natural_pitch
     else
       self.accidentals = accidentals
@@ -115,8 +121,8 @@ Pitch = class 'Pitch' {
   -- @return MIDI note number (0-127 for standard range)
   __tointeger = function(self)
     return lowest_pitch_indices[self.pitch_class]
-           + (self.octave * 12)
-           + self.accidentals
+      + (self.octave * 12)
+      + self.accidentals
   end,
 
   --- Checks equality of two pitches.
@@ -156,12 +162,17 @@ Pitch = class 'Pitch' {
   -- local c4 = Pitch.c4
   -- local e4 = c4 + PitchInterval.major_third
   __add = function(self, pitch_interval)
-    local pitch_class = PitchClass[(self.pitch_class.index + pitch_interval.number - 1) % 7 + 1]
-    local octave = math.floor(self.octave + (self.pitch_class.index + pitch_interval.number - 1) / 7)
+    local pitch_class =
+      PitchClass[(self.pitch_class.index + pitch_interval.number - 1) % 7 + 1]
+    local octave = math.floor(
+      self.octave + (self.pitch_class.index + pitch_interval.number - 1) / 7
+    )
     local pitch_index = tointeger(self) + tointeger(pitch_interval)
-    return Pitch{pitch_class=pitch_class,
-                 octave=octave,
-                 pitch_index=pitch_index}
+    return Pitch({
+      pitch_class = pitch_class,
+      octave = octave,
+      pitch_index = pitch_index,
+    })
   end,
 
   --- Subtracts a Pitch or PitchInterval.
@@ -179,16 +190,21 @@ Pitch = class 'Pitch' {
   __sub = function(self, other)
     self, other = llx.metamethod_args(Pitch, self, other)
     if isinstance(other, Pitch) then
-      local self_pitch_class_octave = (self.pitch_class.index - 1) + self.octave * 7
-      local other_pitch_class_octave = (other.pitch_class.index - 1) + other.octave * 7
-      return PitchInterval{number=self_pitch_class_octave - other_pitch_class_octave,
-                           semitone_interval=tointeger(self) - tointeger(other)}
+      local self_pitch_class_octave = (self.pitch_class.index - 1)
+        + self.octave * 7
+      local other_pitch_class_octave = (other.pitch_class.index - 1)
+        + other.octave * 7
+      return PitchInterval({
+        number = self_pitch_class_octave - other_pitch_class_octave,
+        semitone_interval = tointeger(self) - tointeger(other),
+      })
     elseif isinstance(other, PitchInterval) then
-      local pitch_class = PitchClass[(self.pitch_class.index - other.number - 1) % 7 + 1]
-      local octave = self.octave + math.floor((self.pitch_class.index - other.number - 1) / 7)
+      local pitch_class =
+        PitchClass[(self.pitch_class.index - other.number - 1) % 7 + 1]
+      local octave = self.octave
+        + math.floor((self.pitch_class.index - other.number - 1) / 7)
       local pitch_index = tointeger(self) - tointeger(other)
-      return Pitch{pitch_class=pitch_class,
-                   pitch_index=pitch_index}
+      return Pitch({ pitch_class = pitch_class, pitch_index = pitch_index })
     end
   end,
 
@@ -197,10 +213,12 @@ Pitch = class 'Pitch' {
   -- @tparam Pitch self
   -- @tparam StringFormatter formatter The StringFormatter to use
   __tostringf = function(self, formatter)
-    if lowest_pitch_indices[PitchClass.A] <= tointeger(self)
-        and tointeger(self) < 128
-        and Accidental.flat <= self.accidentals
-        and self.accidentals <= Accidental.sharp then
+    if
+      lowest_pitch_indices[PitchClass.A] <= tointeger(self)
+      and tointeger(self) < 128
+      and Accidental.flat <= self.accidentals
+      and self.accidentals <= Accidental.sharp
+    then
       local pitch_class_name = self.pitch_class.name:lower()
       local accidental = ''
       if self.accidentals == Accidental.flat then
@@ -209,15 +227,17 @@ Pitch = class 'Pitch' {
         accidental = 'sharp'
       end
       formatter:module_class_field(
-        'musica', 'Pitch',
-        pitch_class_name .. accidental .. tostring(self.octave))
+        'musica',
+        'Pitch',
+        pitch_class_name .. accidental .. tostring(self.octave)
+      )
     end
 
-    formatter:table_cons{'musica', 'Pitch'} {
-      {'pitch_class', self.pitch_class},
-      {'octave', self.octave},
-      {'accidentals', self.accidentals}
-    }
+    formatter:table_cons({ 'musica', 'Pitch' })({
+      { 'pitch_class', self.pitch_class },
+      { 'octave', self.octave },
+      { 'accidentals', self.accidentals },
+    })
   end,
 
   --- Returns a string representation of the pitch.
@@ -225,19 +245,19 @@ Pitch = class 'Pitch' {
   __tostring = function(self)
     return tostringf(self, styles.abbrev)
   end,
-}
+})
 
 -- Generate named pitch constants (Pitch.c4, Pitch.csharp4, etc.)
 -- for all pitches in the MIDI range (0-127).
 local current_pitch = lowest_pitch_indices[PitchClass.A]
 local current_octave = 0
 local accidental_args = {
-  {suffix='', accidental=Accidental.natural},
-  {suffix='flat', accidental=Accidental.flat},
-  {suffix='sharp', accidental=Accidental.sharp},
+  { suffix = '', accidental = Accidental.natural },
+  { suffix = 'flat', accidental = Accidental.flat },
+  { suffix = 'sharp', accidental = Accidental.sharp },
 }
 
-local pitch_classes = List{
+local pitch_classes = List({
   PitchClass.A,
   PitchClass.B,
   PitchClass.C,
@@ -245,14 +265,18 @@ local pitch_classes = List{
   PitchClass.E,
   PitchClass.F,
   PitchClass.G,
-}
+})
 while current_pitch < 128 do
   for i, pitch_class, interval in zip(pitch_classes, minor_pitch_intervals) do
     for unused, args in ipairs(accidental_args) do
-      local pitch_name = pitch_class.name:lower() .. args.suffix .. current_octave
-      Pitch[pitch_name] = Pitch{pitch_class=pitch_class,
-                                octave=current_octave,
-                                accidentals=args.accidental}
+      local pitch_name = pitch_class.name:lower()
+        .. args.suffix
+        .. current_octave
+      Pitch[pitch_name] = Pitch({
+        pitch_class = pitch_class,
+        octave = current_octave,
+        accidentals = args.accidental,
+      })
     end
     current_pitch = current_pitch + interval
   end

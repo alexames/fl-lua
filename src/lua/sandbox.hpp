@@ -15,4 +15,4 @@ void configurePackagePath(lua_State* L, const std::string& luaLibsPath);
 // Lock the global table to prevent accidental global variable creation
 void lockGlobalTable(lua_State* L);
 
-} // namespace FLLua
+}  // namespace FLLua

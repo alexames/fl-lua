@@ -1,7 +1,7 @@
-local bytecode = require 'bcode'
+local bytecode = require('bcode')
 
 local function write_indented(file, indent, ...)
-  for i=1, indent do
+  for i = 1, indent do
     file:write('  ')
   end
   file:write(...)

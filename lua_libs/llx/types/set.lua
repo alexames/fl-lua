@@ -1,17 +1,17 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local class = require 'llx.class' . class
-local environment = require 'llx.environment'
-local List = require 'llx.types.list' . List
-local Table = require 'llx.types.table' . Table
+local class = require('llx.class').class
+local environment = require('llx.environment')
+local List = require('llx.types.list').List
+local Table = require('llx.types.table').Table
 
 local _ENV, _M = environment.create_module_environment()
 
-Set = class 'Set' {
+Set = class('Set')({
   __init = function(self, values)
     local _values = {}
     rawset(self, '_values', _values)
-    for i=1, values and #values or 0 do
+    for i = 1, values and #values or 0 do
       local key = values[i]
       _values[key] = true
     end
@@ -24,7 +24,7 @@ Set = class 'Set' {
   end,
 
   __eq = function(a, b)
-    if type(a) ~= "table" or type(b) ~= "table" then
+    if type(a) ~= 'table' or type(b) ~= 'table' then
       return false
     end
 
@@ -45,9 +45,9 @@ Set = class 'Set' {
 
     -- Check if all elements in set B are also in set A
     for k, v in pairs(b_values) do
-        if not a_values[k] then
-            return false
-        end
+      if not a_values[k] then
+        return false
+      end
     end
 
     return true
@@ -71,7 +71,7 @@ Set = class 'Set' {
   end,
 
   difference = function(self, other)
-    local result = Set{}
+    local result = Set({})
     local result_values = rawget(result, '_values')
     local other_values = rawget(other, '_values')
     for k, v in pairs(self) do
@@ -83,7 +83,7 @@ Set = class 'Set' {
   end,
 
   intersection = function(self, other)
-    local result = Set{}
+    local result = Set({})
     local result_values = rawget(result, '_values')
     local other_values = rawget(other, '_values')
     for k, v in pairs(self) do
@@ -103,7 +103,7 @@ Set = class 'Set' {
   end,
 
   tolist = function(self)
-    local result = List{}
+    local result = List({})
     for k, v in pairs(self) do
       result:insert(k)
     end
@@ -124,13 +124,13 @@ Set = class 'Set' {
     for k, v in pairs(rawget(self, '_values')) do
       table.insert(values, tostring(k))
     end
-    return "Set{" .. table.concat(values, ', ') .. "}"
+    return 'Set{' .. table.concat(values, ', ') .. '}'
   end,
 
   __pairs = function(self)
     return pairs(rawget(self, '_values'))
   end,
-}
+})
 
 Set.__bor = Set.union
 Set.__sub = Set.difference

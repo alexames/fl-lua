@@ -24,24 +24,24 @@
 -- the or operator again for each decorator. Classes have special handling for
 -- decorators, and will apply them in the order they appear
 
-local class  = require 'llx.class' . class
-local environment = require 'llx.environment'
+local class = require('llx.class').class
+local environment = require('llx.environment')
 
 local _ENV, _M = environment.create_module_environment()
 
-Decorator = class 'Decorator' {
+Decorator = class('Decorator')({
   __bor = function(lhs, self)
     if type(lhs) == 'table' and lhs.__isdecorator then
       table.insert(lhs.decorator_table, self)
       return lhs
     else
-      return {__isdecorator=true, name=lhs, decorator_table={self}}
+      return { __isdecorator = true, name = lhs, decorator_table = { self } }
     end
   end,
 
   decorate = function(self, class, name, value)
     return class, name, value
-  end
-}
+  end,
+})
 
 return _M

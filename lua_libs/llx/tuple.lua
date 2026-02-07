@@ -1,18 +1,17 @@
-
-local class_module  = require 'llx.class'
-local environment = require 'llx.environment'
-local exceptions = require 'llx.exceptions'
-local hash = require 'llx.hash'
+local class_module = require('llx.class')
+local environment = require('llx.environment')
+local exceptions = require('llx.exceptions')
+local hash = require('llx.hash')
 
 local _ENV, _M = environment.create_module_environment()
 
-local class  = class_module.class
+local class = class_module.class
 
-Tuple = class 'Tuple' {
+Tuple = class('Tuple')({
   __init = function(self, t)
     local values = {}
     rawset(self, '__values', values)
-    for i=1, #t do
+    for i = 1, #t do
       values[i] = t[i]
     end
   end,
@@ -30,7 +29,7 @@ Tuple = class 'Tuple' {
   end,
 
   __hash = function(self, result)
-    for i=1, #self do
+    for i = 1, #self do
       result = hash.hash_value(i, result)
       result = hash.hash_value(self[i], result)
     end
@@ -44,6 +43,6 @@ Tuple = class 'Tuple' {
   __tostring = function(self)
     return 'Tuple{' .. table.concat(self, ',') .. '}'
   end,
-}
+})
 
 return _M

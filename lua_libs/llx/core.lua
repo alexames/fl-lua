@@ -5,8 +5,8 @@
 -- iteration, comparison, and common predicates.
 -- @module llx.core
 
-local environment = require 'llx.environment'
-local isinstance = require 'llx.isinstance' . isinstance
+local environment = require('llx.environment')
+local isinstance = require('llx.isinstance').isinstance
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -31,7 +31,9 @@ end
 -- @usage
 -- if is_callable(obj) then obj() end
 function is_callable(v)
-  if type(v) == 'function' then return true end
+  if type(v) == 'function' then
+    return true
+  end
   local metafield = getmetafield(v, '__call')
   return metafield and type(metafield) == 'function'
 end
@@ -50,7 +52,7 @@ end
 -- @return The file path of the script
 -- @usage local path = script_path()
 function script_path(level)
-   return debug.getinfo((level or 1) + 1, "S").source:sub(2)
+  return debug.getinfo((level or 1) + 1, 'S').source:sub(2)
 end
 
 --- Checks if the current script is the main entry point.
@@ -122,9 +124,12 @@ end
 -- result = cmp(10, 10) -- returns 0
 -- result = cmp(15, 10) -- returns 1
 function cmp(a, b)
-  if a == b then return 0
-  elseif a < b then return -1
-  else return 1
+  if a == b then
+    return 0
+  elseif a < b then
+    return -1
+  else
+    return 1
   end
 end
 
@@ -152,13 +157,17 @@ end
 -- @param v The number to check
 -- @return true if even, false if odd
 -- @usage if even(4) then print("even") end
-function even(v) return v % 2 == 0 end
+function even(v)
+  return v % 2 == 0
+end
 
 --- Checks if a number is odd.
 -- @param v The number to check
 -- @return true if odd, false if even
 -- @usage if odd(3) then print("odd") end
-function odd(v) return v % 2 == 1 end
+function odd(v)
+  return v % 2 == 1
+end
 
 --- Checks if a value is not nil.
 -- Useful as a predicate function for filter operations.
@@ -174,7 +183,9 @@ end
 -- @param ... Any arguments
 -- @return All arguments unchanged
 -- @usage local x, y = noop(1, 2)  -- x=1, y=2
-function noop(...) return ... end
+function noop(...)
+  return ...
+end
 
 --- Evaluates a Lua expression string.
 -- Parses and executes a string as a Lua expression, returning the result.
@@ -182,7 +193,7 @@ function noop(...) return ... end
 -- @return The result of evaluating the expression
 -- @usage local x = tovalue("1 + 2")  -- returns 3
 function tovalue(s)
-  return load('return '.. s)()
+  return load('return ' .. s)()
 end
 
 return _M

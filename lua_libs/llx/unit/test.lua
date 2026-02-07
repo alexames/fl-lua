@@ -3,10 +3,10 @@
 --
 -- @module unit.test
 
-local llx = require 'llx'
+local llx = require('llx')
 local class = llx.class
 local isinstance = llx.isinstance
-local functional = require 'llx.functional'
+local functional = require('llx.functional')
 local product = functional.product
 
 local test_index = 0
@@ -29,7 +29,8 @@ local function test(name)
       return self
     end,
   }
-  local t = {index = test_index, name = {name}, parameter = {}, __istest = true}
+  local t =
+    { index = test_index, name = { name }, parameter = {}, __istest = true }
   return setmetatable(t, mt)
 end
 
@@ -40,7 +41,7 @@ end
 
 --- Base class for test suites.
 -- Users should subclass this when defining test classes.
-local Test = class 'Test' {
+local Test = class('Test')({
   setup = llx.noop,
   teardown = llx.noop,
 
@@ -51,20 +52,26 @@ local Test = class 'Test' {
   end,
 
   --- Returns gathered test metadata
-  tests = function(self) return self._tests end,
+  tests = function(self)
+    return self._tests
+  end,
 
   --- Returns the name of the test class
-  name = function(self) return self._name end,
+  name = function(self)
+    return self._name
+  end,
 
   --- Collects all test functions defined using `test` decorator
   gather_tests = function(self)
     local result = llx.Table()
     for key, testfunc in pairs(getmetatable(self)) do
       if is_test(key) then
-        result:insert({index = key.index, name = key.name, func = testfunc})
+        result:insert({ index = key.index, name = key.name, func = testfunc })
       end
     end
-    result:sort(function(a, b) return a.index < b.index end)
+    result:sort(function(a, b)
+      return a.index < b.index
+    end)
     return result
   end,
 
@@ -82,9 +89,13 @@ local Test = class 'Test' {
   -- Handles parameterized tests (not yet implemented)
   run_tests = function(self, printer)
     if not self._initialized then
-      error(string.format('a test suite was not initialized. '
-                          .. 'Remember to call `self.Test.__init`'),
-            3)
+      error(
+        string.format(
+          'a test suite was not initialized. '
+            .. 'Remember to call `self.Test.__init`'
+        ),
+        3
+      )
     end
     printer.class_preamble(self)
     local failure_count = 0
@@ -96,7 +107,8 @@ local Test = class 'Test' {
         end
       else
         for _, arguments in product(table.unpack(test.arguments)) do
-          local successful = self:run_test(printer, test, table.unpack(arguments))
+          local successful =
+            self:run_test(printer, test, table.unpack(arguments))
           if not successful then
             failure_count = failure_count + 1
           end
@@ -106,7 +118,7 @@ local Test = class 'Test' {
     printer.class_conclusion(self, failure_count)
     return failure_count, #self._tests
   end,
-}
+})
 
 return {
   test = test,

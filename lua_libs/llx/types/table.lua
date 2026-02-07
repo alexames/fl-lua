@@ -1,22 +1,23 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local environment = require 'llx.environment'
-local ExceptionGroup = require 'llx.exceptions.exception_group' . ExceptionGroup
-local getmetafield = require 'llx.core' . getmetafield
-local SchemaMissingFieldException = require 'llx.exceptions.schema_exception' . SchemaMissingFieldException
+local environment = require('llx.environment')
+local ExceptionGroup = require('llx.exceptions.exception_group').ExceptionGroup
+local getmetafield = require('llx.core').getmetafield
+local SchemaMissingFieldException =
+  require('llx.exceptions.schema_exception').SchemaMissingFieldException
 
 local _ENV, _M = environment.create_module_environment()
 
 Table = table
 
-Table.__name = 'Table';
+Table.__name = 'Table'
 
 function Table:__isinstance(v)
   return type(v) == 'table'
 end
 
 local function contains(list, value)
-  for i=1, #list do
+  for i = 1, #list do
     local element = list[i]
     if value == element then
       return true
@@ -34,13 +35,15 @@ function Table:__validate(schema, path, level, check_field)
       local value = self[key]
       if value == nil then
         if required and contains(required, key) then
-          Table.insert(exception_list,
-                       SchemaMissingFieldException(path, key, level + 1))
+          Table.insert(
+            exception_list,
+            SchemaMissingFieldException(path, key, level + 1)
+          )
         end
       else
         Table.insert(path, key)
         local successful, exception =
-            check_field(property, value, path, level + 1)
+          check_field(property, value, path, level + 1)
         if not successful then
           Table.insert(exception_list, exception)
         end
@@ -77,9 +80,9 @@ end
 function Table:remove_if(predicate)
   local j = 1
   local size = #self
-  for i=1, size do
+  for i = 1, size do
     if not predicate(self[i]) then
-      if (i ~= j) then
+      if i ~= j then
         self[j] = self[i]
         self[i] = nil
       end
@@ -100,7 +103,7 @@ function Table:get_or_insert_lazy(k, default_func)
   return v
 end
 
-function Table:get_or_insert(k, default) 
+function Table:get_or_insert(k, default)
   local v = self[k]
   if not v then
     v = default
@@ -120,19 +123,19 @@ end
 function Table:deepcopy(destination)
   destination = destination or {}
   local visited = {}
-  
+
   local function deepcopy_helper(src, dst)
     if type(src) ~= 'table' then
       return src
     end
-    
+
     -- Handle circular references
     if visited[src] then
       return visited[src]
     end
-    
+
     visited[src] = dst
-    
+
     for k, v in pairs(src) do
       if type(v) == 'table' then
         dst[k] = {}
@@ -141,10 +144,10 @@ function Table:deepcopy(destination)
         dst[k] = v
       end
     end
-    
+
     return dst
   end
-  
+
   return deepcopy_helper(self, destination)
 end
 
@@ -171,7 +174,7 @@ function Table:find_if(predicate)
 end
 
 function Table:ifind(value, init)
-  for i=init or 1, #self do
+  for i = init or 1, #self do
     if self[i] == value then
       return i, value
     end
@@ -179,7 +182,7 @@ function Table:ifind(value, init)
 end
 
 function Table:ifind_if(predicate, init)
-  for i=init or 1, #self do
+  for i = init or 1, #self do
     if predicate(i, self[i]) then
       return i, self[i]
     end
@@ -199,13 +202,15 @@ function Table:concat(sep, i, j)
 
   local result = ''
 
-  for k=i, j do
+  for k = i, j do
     local value = self[k]
 
     if type(value) == 'table' or type(value) == 'userdata' then
       local __tostring = getmetafield(value, '__tostring')
       if type(__tostring) ~= 'function' then
-        error('Attempt to concatenate a table or userdata without a __tostring metamethod')
+        error(
+          'Attempt to concatenate a table or userdata without a __tostring metamethod'
+        )
       end
       value = __tostring(value)
     end

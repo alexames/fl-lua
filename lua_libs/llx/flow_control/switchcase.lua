@@ -1,6 +1,6 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local Table = require 'llx.types.table' . Table
+local Table = require('llx.types.table').Table
 
 -- switch {
 --   value;
@@ -15,27 +15,30 @@ default = {}
 function switch(value)
   return function(cases)
     local fn = cases[value] or cases[default]
-    if fn then fn(value) end
+    if fn then
+      fn(value)
+    end
   end
 end
 
 local index = 0
 function case(value)
   index = index + 1
-  return {index=index, value=value}
+  return { index = index, value = value }
 end
 
 function type_switch(value)
   return function(cases)
     local sorted_cases = {}
-    for k, v in pairs(cases) do table.insert(sorted_cases, k) end
-    Table.sort(cases, function(a, b) return a.index < b.index end)
-    local _, key =
-      Table.ifind_if(
-        sorted_cases,
-        function(i, case)
-          return isinstance(value, case.value)
-        end)
+    for k, v in pairs(cases) do
+      table.insert(sorted_cases, k)
+    end
+    Table.sort(cases, function(a, b)
+      return a.index < b.index
+    end)
+    local _, key = Table.ifind_if(sorted_cases, function(i, case)
+      return isinstance(value, case.value)
+    end)
     local handler = key and cases[key]
     return handler and handler(value)
   end

@@ -3,10 +3,10 @@
 --
 -- @module llx.unit.runner
 
-local test_logger = require 'llx.unit.test_logger'
+local test_logger = require('llx.unit.test_logger')
 
 -- Import test API suites
-local test_api = require 'llx.unit.test_api'
+local test_api = require('llx.unit.test_api')
 
 --- Executes all registered test suites (describe/it style).
 -- @param[opt] filter A string to match against test suite names
@@ -26,7 +26,7 @@ local function run_unit_tests(filter, logger)
         cls.__name,
         cls.__tests_data,
         cls.__nested_suites or {},
-        cls.__name_path or {cls.__name}
+        cls.__name_path or { cls.__name }
       )
       local failed_tests, tests_ran = test_object:run_tests(hierarchical_logger)
       total_failure_count = total_failure_count + failed_tests

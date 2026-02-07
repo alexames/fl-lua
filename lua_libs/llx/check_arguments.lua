@@ -1,12 +1,12 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local class_module = require 'llx.class'
-local decorator = require 'llx.decorator'
-local environment = require 'llx.environment'
-local exceptions = require 'llx.exceptions'
-local getclass_module = require 'llx.getclass'
-local isinstance_module = require 'llx.isinstance'
-local table_module = require 'llx.types.table'
+local class_module = require('llx.class')
+local decorator = require('llx.decorator')
+local environment = require('llx.environment')
+local exceptions = require('llx.exceptions')
+local getclass_module = require('llx.getclass')
+local isinstance_module = require('llx.isinstance')
+local table_module = require('llx.types.table')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -32,14 +32,15 @@ local function check_argument(index, value, expected_type)
     if exception then
       error(InvalidArgumentException(index, exception.what, 4))
     else
-      error(InvalidArgumentTypeException(
-          index, expected_type, getclass(value), 4))
+      error(
+        InvalidArgumentTypeException(index, expected_type, getclass(value), 4)
+      )
     end
   end
 end
 
 function check_returns(expected_types, return_values)
-  for i=1, #expected_types do
+  for i = 1, #expected_types do
     check_argument(i, return_values[i], expected_types[i])
   end
 end

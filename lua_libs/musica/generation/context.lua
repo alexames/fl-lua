@@ -7,14 +7,14 @@
 -- @module musica.generation.context
 
 -- Require z3 before llx to avoid strict mode conflicts
-local z3 = require 'z3'
-local llx = require 'llx'
+local z3 = require('z3')
+local llx = require('llx')
 
 -- Require individual musica modules to avoid circular dependency
 -- (musica.init now includes musica.generation)
-local figure_module = require 'musica.figure'
-local note_module = require 'musica.note'
-local pitch_module = require 'musica.pitch'
+local figure_module = require('musica.figure')
+local note_module = require('musica.note')
+local pitch_module = require('musica.pitch')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -29,7 +29,7 @@ local Pitch = pitch_module.Pitch
 --- Generation context for Z3 constraint solving.
 -- Manages Z3 variables for pitch, duration, and volume of each note position.
 -- @type GenerationContext
-GenerationContext = class 'GenerationContext' {
+GenerationContext = class('GenerationContext')({
   --- Creates a new GenerationContext.
   -- @tparam GenerationContext self
   -- @tparam table args Configuration table
@@ -49,9 +49,9 @@ GenerationContext = class 'GenerationContext' {
     self.volume_precision = args.volume_precision or 1000
 
     -- Z3 variables for each note position
-    self.pitch_vars = List{}
-    self.duration_vars = List{}
-    self.volume_vars = List{}
+    self.pitch_vars = List({})
+    self.duration_vars = List({})
+    self.volume_vars = List({})
 
     -- Create variables
     self:_create_variables()
@@ -62,17 +62,18 @@ GenerationContext = class 'GenerationContext' {
   _create_variables = function(self)
     for i = 1, self.num_notes do
       -- Pitch as integer (MIDI number)
-      local pitch_var = self.z3_ctx:int_const(string.format("pitch_%d", i))
+      local pitch_var = self.z3_ctx:int_const(string.format('pitch_%d', i))
       self.pitch_vars:insert(pitch_var)
 
       -- Duration as integer (real duration * precision)
-      local duration_var = self.z3_ctx:int_const(string.format("duration_%d", i))
+      local duration_var =
+        self.z3_ctx:int_const(string.format('duration_%d', i))
       self.duration_vars:insert(duration_var)
       -- Duration must be positive
       self.solver:add(duration_var:gt(self.z3_ctx:int_val(0)))
 
       -- Volume as integer (real volume * precision, range 0-1 maps to 0-precision)
-      local volume_var = self.z3_ctx:int_const(string.format("volume_%d", i))
+      local volume_var = self.z3_ctx:int_const(string.format('volume_%d', i))
       self.volume_vars:insert(volume_var)
       -- Volume must be in range [0, precision] (maps to [0.0, 1.0])
       self.solver:add(volume_var:ge(self.z3_ctx:int_val(0)))
@@ -188,7 +189,7 @@ GenerationContext = class 'GenerationContext' {
   -- @tparam number value The MIDI note number
   -- @treturn Pitch The corresponding pitch
   z3_to_pitch = function(self, value)
-    return Pitch{midi_index = value}
+    return Pitch({ midi_index = value })
   end,
 
   --- Converts a duration Z3 value to a real number.
@@ -204,7 +205,9 @@ GenerationContext = class 'GenerationContext' {
   -- @tparam number duration The real duration
   -- @treturn z3.expr Z3 integer literal
   duration_to_z3 = function(self, duration)
-    return self.z3_ctx:int_val(math.floor(duration * self.duration_precision + 0.5))
+    return self.z3_ctx:int_val(
+      math.floor(duration * self.duration_precision + 0.5)
+    )
   end,
 
   --- Converts a volume Z3 value to a real number.
@@ -228,7 +231,7 @@ GenerationContext = class 'GenerationContext' {
   -- @tparam z3.Model model The Z3 model with solution values
   -- @treturn Figure A figure with notes matching the solution
   build_figure = function(self, model)
-    local notes = List{}
+    local notes = List({})
     local time = 0
 
     for i = 1, self.num_notes do
@@ -241,22 +244,22 @@ GenerationContext = class 'GenerationContext' {
       local volume_val = model:get_value(self.volume_vars[i])
       local volume = self:z3_to_volume(volume_val)
 
-      local note = Note{
+      local note = Note({
         pitch = pitch,
         time = time,
         duration = duration,
         volume = volume,
-      }
+      })
       notes:insert(note)
       time = time + duration
     end
 
-    return Figure{duration = time, notes = notes}
+    return Figure({ duration = time, notes = notes })
   end,
 
   __tostring = function(self)
     return string.format('GenerationContext{num_notes=%d}', self.num_notes)
   end,
-}
+})
 
 return _M

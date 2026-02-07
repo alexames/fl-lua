@@ -101,8 +101,8 @@
 --------------------------------------------------------------------------------
 -- Utilities
 
-local core = require 'llx.core'
-local environment = require 'llx.environment'
+local core = require('llx.core')
+local environment = require('llx.environment')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -211,12 +211,17 @@ local function create_class_definer(class_table, class_table_proxy)
   local class_definer = nil
   class_definer = {
     extends = function(self, ...)
-      local arg = {...}
+      local arg = { ... }
       assert(#arg > 0, '%s must list at least one base class when extending')
       for i, base in ipairs(arg) do
-        assert(type(base) == 'table', 
-               string.format('%s must inherit from table, not %s',
-                             class_table.__name, type(base)))
+        assert(
+          type(base) == 'table',
+          string.format(
+            '%s must inherit from table, not %s',
+            class_table.__name,
+            type(base)
+          )
+        )
         local base_name = base.__name
         if base_name then
           class_table[base_name] = base
@@ -231,7 +236,7 @@ local function create_class_definer(class_table, class_table_proxy)
       end
 
       return class_definer
-    end
+    end,
   }
 
   local class_definer_metatable = {
@@ -256,7 +261,7 @@ local function create_class_definer(class_table, class_table_proxy)
         end
       end
       return class_table_proxy
-    end
+    end,
   }
 
   setmetatable(class_definer, class_definer_metatable)
@@ -280,38 +285,39 @@ local function create_class_table_proxy(class_table)
 
   local class_table_proxy = {}
   local class_table_proxy_metatable = {
-    __metatable = class_table_proxy;
+    __metatable = class_table_proxy,
 
     -- Used to initialize an instance of the class.
     __call = function(self, ...)
       local object = setmetatable(
         class_table.__new and class_table.__new(...) or {},
-        class_table)
+        class_table
+      )
       if class_table.__init then
         class_table.__init(object, ...)
       end
       return object
-    end;
+    end,
 
-    __index = class_table.__index;
+    __index = class_table.__index,
 
     __newindex = function(self, k, v)
       rawset(class_table, k, v)
       handle_potential_metafield(class_table, k, v)
-    end;
+    end,
 
     __pairs = function()
       return class_table_next, nil, nil
-    end;
+    end,
 
     __len = function()
       return #class_table
-    end;
+    end,
 
     __eq = function(lhs, rhs)
       local other = (rawequal(class_table_proxy, lhs) and rhs or lhs)
       return rawequal(class_table, other)
-    end;
+    end,
 
     __tostring = function(self)
       return self.__name
@@ -349,7 +355,9 @@ local function create_internal_class_table(name)
     if class_table.__superclasses then
       for _, base in ipairs(class_table.__superclasses) do
         local value = base[k]
-        if value then return value end
+        if value then
+          return value
+        end
       end
     end
     return nil
@@ -384,18 +392,18 @@ local function create_internal_class_table(name)
 
   -- Initialize the class table with internal fields and metamethods
   class_table = {
-    __name = name;
+    __name = name,
 
-    __superclasses = {};
-    __subclasses = {};
-    __metafields = {};
+    __superclasses = {},
+    __subclasses = {},
+    __metafields = {},
 
-    __index = __index;
-    __defaultindex = __index;
+    __index = __index,
+    __defaultindex = __index,
 
-    __isinstance = __isinstance;
+    __isinstance = __isinstance,
 
-    __is_llx_class = true;
+    __is_llx_class = true,
   }
 
   return class_table
@@ -447,7 +455,7 @@ local function create_conversion_function(name, class_table, class_table_proxy)
     local __to_class_key = '__to_' .. name
     function to_class(value)
       local __to_class = getmetafield(value, __to_class_key)
-                         or getmetafield(value, class_table_proxy)
+        or getmetafield(value, class_table_proxy)
       return __to_class and __to_class(value)
     end
     class_table.to_class = to_class
@@ -490,7 +498,7 @@ local class_callable = {
     local definer = create_class_definer(class_table, class_table_proxy)
     definer:extends(...)
     return definer
-  end;
+  end,
 }
 
 -- Metatable for defining and instantiating classes.
@@ -509,7 +517,7 @@ local class_metatable = {
     else
       return definer
     end
-  end;
+  end,
 }
 
 --- Metatable for defining and instantiating classes.

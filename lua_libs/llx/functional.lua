@@ -6,12 +6,12 @@
 -- itertools module.
 -- @module llx.functional
 
-local core = require 'llx.core'
-local environment = require 'llx.environment'
-local list = require 'llx.types.list'
-local operators = require 'llx.operators'
-local string_module = require 'llx.types.string'
-local table_module = require 'llx.types.table'
+local core = require('llx.core')
+local environment = require('llx.environment')
+local list = require('llx.types.list')
+local operators = require('llx.operators')
+local string_module = require('llx.types.string')
+local table_module = require('llx.types.table')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -39,15 +39,17 @@ function range(a, b, c)
   local start = start - step
   local index = 0
   local i
-  return step > 0 and function()
-    i = (i or start) + step
-    index = index + 1
-    return i < finish and index or nil, i
-  end or function()
-    i = (i or start) + step
-    index = index + 1
-    return i > finish and index or nil, i
-  end
+  return step > 0
+      and function()
+        i = (i or start) + step
+        index = index + 1
+        return i < finish and index or nil, i
+      end
+    or function()
+      i = (i or start) + step
+      index = index + 1
+      return i > finish and index or nil, i
+    end
 end
 
 -- Internal helper for control state management
@@ -64,7 +66,7 @@ end
 -- @param closing Optional closing value for to-be-closed variables
 -- @return Wrapped iterator, nil, nil, closing
 function generator(iterator, state, control, closing)
-  local control_holder = {control}
+  local control_holder = { control }
   local function wrapper()
     return control_updater(control_holder, iterator(state, control_holder[1]))
   end
@@ -81,12 +83,12 @@ end
 -- local doubled = map(function(x) return x * 2 end, range(5))
 -- -- Returns List{2, 4, 6, 8}
 function map(lambda, ...)
-  local sequences = {...}
-  local result = List{}
+  local sequences = { ... }
+  local result = List({})
   local controls = {}
   local index = 0
   while true do
-    local values = List{}
+    local values = List({})
     local control
     for i, sequence in ipairs(sequences) do
       control, values[i] = sequence(nil, controls[i])
@@ -96,7 +98,9 @@ function map(lambda, ...)
         break
       end
     end
-    if control == nil then break end
+    if control == nil then
+      break
+    end
     index = index + 1
     result[index] = lambda(unpack(values))
   end
@@ -106,7 +110,9 @@ end
 --- Checks if a number is even.
 -- @param v The number to check
 -- @return true if even, false otherwise
-function even(v) return v % 2 == 0 end
+function even(v)
+  return v % 2 == 0
+end
 
 --- Filters a sequence based on a predicate function.
 -- Returns an iterator that yields only elements for which the predicate
@@ -157,14 +163,16 @@ end
 -- local cycled = cycle(List{1, 2, 3})
 -- -- yields 1, 2, 3, 1, 2, 3, 1, 2, 3, ...
 function cycle(sequence)
-  local cache = List{}
+  local cache = List({})
   local control = nil
   for i, v in sequence do
     cache:insert(v)
   end
 
   if #cache == 0 then
-    return function() return nil end
+    return function()
+      return nil
+    end
   end
 
   local index = 0
@@ -208,7 +216,7 @@ end
 -- local sums = accumulate(range(5), function(a, b) return a + b end)
 -- -- Returns List{1, 3, 6, 10}
 function accumulate(sequence, lambda, initial_value)
-  local result = List{}
+  local result = List({})
   local index = 0
   local previous
 
@@ -218,7 +226,9 @@ function accumulate(sequence, lambda, initial_value)
     previous = initial_value
   else
     local ctrl, first = sequence()
-    if ctrl == nil then return result end
+    if ctrl == nil then
+      return result
+    end
     index = 1
     result[1] = first
     previous = first
@@ -244,14 +254,16 @@ end
 -- end
 function batched(iterable, n)
   if n < 1 then
-    error("n must be at least one")
+    error('n must be at least one')
   end
 
   local control = nil
   local index = 0
   local done = false
   return function()
-    if done then return end
+    if done then
+      return
+    end
     index = index + 1
     local batch = {}
     for i = 1, n do
@@ -279,7 +291,7 @@ end
 --   print(v)  -- 1, 2, 3, 4
 -- end
 function chain(...)
-  local sequences = {...}
+  local sequences = { ... }
   local current_seq_index = 1
   local current_control = nil
 
@@ -372,7 +384,9 @@ end
 -- @return Iterator yielding elements where predicate is false
 function filterfalse(predicate, sequence)
   predicate = predicate or nonnil
-  return filter(function(v) return not predicate(v) end, sequence)
+  return filter(function(v)
+    return not predicate(v)
+  end, sequence)
 end
 
 --- Groups elements by a key function.
@@ -392,7 +406,7 @@ function group_by(sequence, key_func)
   for i, v in sequence do
     local key = key_func(v)
     if not groups[key] then
-      groups[key] = List{}
+      groups[key] = List({})
       table.insert(group_keys, key)
     end
     groups[key]:insert(v)
@@ -430,7 +444,9 @@ function slice(sequence, start, stop, step)
   while skipped < start - 1 do
     local ctrl, _ = sequence(nil, current_control)
     if ctrl == nil then
-      return function() return nil end
+      return function()
+        return nil
+      end
     end
     current_control = ctrl
     skipped = skipped + 1
@@ -490,7 +506,7 @@ function pairwise(sequence)
       return nil
     end
 
-    local result = {prev_value, value}
+    local result = { prev_value, value }
     prev_control = ctrl
     prev_value = value
     return ctrl, unpack(result)
@@ -503,7 +519,7 @@ end
 -- @param ... Multiple sequences
 -- @return Iterator function
 function star_map(lambda, ...)
-  local sequences = {...}
+  local sequences = { ... }
   local controls = {}
   return function()
     local values = {}
@@ -561,7 +577,7 @@ end
 -- print(it2())  -- 1 (independent)
 function tee(sequence, n)
   n = n or 2
-  local cache = List{}
+  local cache = List({})
   local iterators = {}
   local indices = {}
   local seq_control = nil
@@ -596,11 +612,11 @@ end
 --   print(a, b)  -- (1, 4), (2, 5), (3, 0)
 -- end
 function zip_longest(...)
-  local sequences = {...}
+  local sequences = { ... }
   local fillvalue = nil
   if #sequences > 0 and type(sequences[#sequences]) ~= 'function' then
     fillvalue = sequences[#sequences]
-    sequences = {table.unpack(sequences, 1, #sequences - 1)}
+    sequences = { table.unpack(sequences, 1, #sequences - 1) }
   end
 
   local controls = {}
@@ -644,7 +660,7 @@ end
 --   print(a, b)  -- (1, 2), (1, 3), (2, 1), (2, 3), (3, 1), (3, 2)
 -- end
 function permutations(sequence, r)
-  local elements = List{}
+  local elements = List({})
   for i, v in sequence do
     elements:insert(v)
   end
@@ -652,7 +668,9 @@ function permutations(sequence, r)
   local n = #elements
   r = r or n
   if r > n then
-    return function() return nil end
+    return function()
+      return nil
+    end
   end
 
   local indices = {}
@@ -722,14 +740,16 @@ end
 --   print(a, b)  -- (1, 2), (1, 3), (2, 3)
 -- end
 function combinations(sequence, r)
-  local elements = List{}
+  local elements = List({})
   for i, v in sequence do
     elements:insert(v)
   end
 
   local n = #elements
   if r > n then
-    return function() return nil end
+    return function()
+      return nil
+    end
   end
 
   local indices = {}
@@ -805,14 +825,18 @@ end
 -- @param sequence The input sequence
 -- @return The minimum value
 function min(sequence)
-  return reduce(sequence, function(a, b) return a < b and a or b end)
+  return reduce(sequence, function(a, b)
+    return a < b and a or b
+  end)
 end
 
 --- Returns the maximum element of a sequence.
 -- @param sequence The input sequence
 -- @return The maximum value
 function max(sequence)
-  return reduce(sequence, function(a, b) return a > b and a or b end)
+  return reduce(sequence, function(a, b)
+    return a > b and a or b
+  end)
 end
 
 --- Returns the sum of all elements in a sequence.
@@ -837,7 +861,7 @@ function zip_impl(iterators, result_handler)
   local control
   return function()
     local result = {}
-    for i=1, #iterators do
+    for i = 1, #iterators do
       local iterator = iterators[i]
       local iterator_control
       iterator_control, result[i] = iterator(nil, control)
@@ -855,7 +879,7 @@ end
 -- @param ... Multiple sequences
 -- @return Iterator yielding (control, table) pairs
 function zip_packed(...)
-  return zip_impl({...}, noop)
+  return zip_impl({ ... }, noop)
 end
 
 --- Zips multiple sequences together, returning unpacked values.
@@ -867,7 +891,7 @@ end
 --   print(a, b)  -- (1, 4), (2, 5), (3, 6)
 -- end
 function zip(...)
-  return zip_impl({...}, unpack)
+  return zip_impl({ ... }, unpack)
 end
 
 --- Returns the Cartesian product of multiple sequences.
@@ -879,22 +903,22 @@ end
 --   print(a, b)  -- (1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')
 -- end
 function cartesian_product(...)
-  local sequences = {...}
+  local sequences = { ... }
   local state = {}
   local control = {}
-  for i=1, #sequences do
+  for i = 1, #sequences do
     state[i] = map(noop, sequences[i])
     control[i] = 1
   end
   control[#control] = 0
   return function(state, control)
-    for i=#control, 1, -1 do
+    for i = #control, 1, -1 do
       control[i] = control[i] + 1
       if control[i] > #state[i] then
         control[i] = 1
       else
         local result = {}
-        for i=1, #state do
+        for i = 1, #state do
           local list = state[i]
           local index = control[i]
           result[i] = list[index]
@@ -902,7 +926,9 @@ function cartesian_product(...)
         return control, unpack(result)
       end
     end
-  end, state, control
+  end,
+    state,
+    control
 end
 
 --- Maps a function over a sequence and flattens the results.
@@ -954,8 +980,8 @@ end
 -- local evens, odds = partition(function(x) return x % 2 == 0 end, range(10))
 function partition(predicate, sequence)
   predicate = predicate or nonnil
-  local matches = List{}
-  local non_matches = List{}
+  local matches = List({})
+  local non_matches = List({})
 
   for i, v in sequence do
     if predicate(v) then
@@ -1006,7 +1032,7 @@ end
 function distinct(sequence, key_func)
   key_func = key_func or noop
   local seen = {}
-  local result = List{}
+  local result = List({})
 
   for i, v in sequence do
     local key = key_func(v) or v
@@ -1065,12 +1091,17 @@ end
 function memoize(func, key_func)
   local cache = {}
 
-  key_func = key_func or function(...)
-    local args = {...}
-    if #args == 0 then return "__no_args__" end
-    if #args == 1 then return args[1] end
-    return table.concat(args, "|")
-  end
+  key_func = key_func
+    or function(...)
+      local args = { ... }
+      if #args == 0 then
+        return '__no_args__'
+      end
+      if #args == 1 then
+        return args[1]
+      end
+      return table.concat(args, '|')
+    end
 
   return function(...)
     local key = key_func(...)

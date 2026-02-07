@@ -1,16 +1,16 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local class = require 'llx.class' . class
-local environment = require 'llx.environment'
-local is_callable = require 'llx.core' . is_callable
-local isinstance = require 'llx.isinstance' . isinstance
-local Number = require 'llx.types.number' . Number
-local String = require 'llx.types.string' . String
-local Table = require 'llx.types.table' . Table
+local class = require('llx.class').class
+local environment = require('llx.environment')
+local is_callable = require('llx.core').is_callable
+local isinstance = require('llx.isinstance').isinstance
+local Number = require('llx.types.number').Number
+local String = require('llx.types.string').String
+local Table = require('llx.types.table').Table
 
 local _ENV, _M = environment.create_module_environment()
 
-List = class 'List' : extends(Table) {
+List = class('List'):extends(Table)({
   __new = function(iterable)
     if is_callable(iterable) then
       local list = {}
@@ -31,7 +31,7 @@ List = class 'List' : extends(Table) {
   end,
 
   contains = function(self, value)
-    for i=1, #self do
+    for i = 1, #self do
       local element = self[i]
       if value == element then
         return true
@@ -46,16 +46,26 @@ List = class 'List' : extends(Table) {
     finish = finish or length
     step = step or 1
 
-    if start < 0 then start = length + start + 1 end
-    if start < 1 then start = 1
-    elseif start > length then start = length end
+    if start < 0 then
+      start = length + start + 1
+    end
+    if start < 1 then
+      start = 1
+    elseif start > length then
+      start = length
+    end
 
-    if finish < 0 then finish = length + finish + 1 end
-    if finish < 0 then finish = 0
-    elseif finish > length then finish = length end
-    local result = List{}
+    if finish < 0 then
+      finish = length + finish + 1
+    end
+    if finish < 0 then
+      finish = 0
+    elseif finish > length then
+      finish = length
+    end
+    local result = List({})
     local dest = 1
-    for src=start, finish, step do
+    for src = start, finish, step do
       result[dest] = self[src]
       dest = dest + 1
     end
@@ -89,7 +99,7 @@ List = class 'List' : extends(Table) {
       end
       return rawget(self, index)
     elseif isinstance(index, Table) then
-      local results = List{}
+      local results = List({})
       for i, v in ipairs(index) do
         results[i] = self[v]
       end
@@ -100,11 +110,11 @@ List = class 'List' : extends(Table) {
   end,
 
   __concat = function(self, other)
-    local result = List{}
-    for i=1, #self do
+    local result = List({})
+    for i = 1, #self do
       result:insert(self[i])
     end
-    for i=1, #other do
+    for i = 1, #other do
       result:insert(other[i])
     end
     return result
@@ -114,8 +124,8 @@ List = class 'List' : extends(Table) {
     if type(self) == 'number' then
       self, num_copies = num_copies, self
     end
-    local result = List{}
-    for i=1, num_copies do
+    local result = List({})
+    for i = 1, num_copies do
       result:extend(self)
     end
     return result
@@ -130,26 +140,34 @@ List = class 'List' : extends(Table) {
   end,
 
   __shl = function(self, n)
-    if n < 0 then return self >> -n
-    elseif n == 0 then return self
-    else return self:sub(n + 1) .. self:sub(1, n)
+    if n < 0 then
+      return self >> -n
+    elseif n == 0 then
+      return self
+    else
+      return self:sub(n + 1) .. self:sub(1, n)
     end
   end,
 
   __shr = function(self, n)
-    if n < 0 then return self << -n
-    elseif n == 0 then return self
-    else return self:sub(-(n)) .. self:sub(1, -(n + 1))
+    if n < 0 then
+      return self << -n
+    elseif n == 0 then
+      return self
+    else
+      return self:sub(-n) .. self:sub(1, -(n + 1))
     end
   end,
 
   __validate = function(self, schema, path, level, check_field)
     local items = schema.items
     local prefix_items = schema.prefix_items or {}
-    if not items then return true end
+    if not items then
+      return true
+    end
 
     local exception_list = {}
-    for i=1, #self do
+    for i = 1, #self do
       local value = self[i]
       local item_schema = prefix_items[i] or items
       if not item_schema then
@@ -157,7 +175,7 @@ List = class 'List' : extends(Table) {
       end
       Table.insert(path, i)
       local successful, exception =
-          check_field(item_schema, value, path, level + 1)
+        check_field(item_schema, value, path, level + 1)
       if not successful then
         Table.insert(exception_list, exception)
       end
@@ -171,7 +189,7 @@ List = class 'List' : extends(Table) {
 
   -- Map: Apply a function to each element and return a new list
   map = function(self, func)
-    local result = List{}
+    local result = List({})
     for i, v in ipairs(self) do
       result:insert(func(v, i))
     end
@@ -180,7 +198,7 @@ List = class 'List' : extends(Table) {
 
   -- Filter: Keep only elements that match the predicate
   filter = function(self, predicate)
-    local result = List{}
+    local result = List({})
     for i, v in ipairs(self) do
       if predicate(v, i) then
         result:insert(v)
@@ -231,7 +249,7 @@ List = class 'List' : extends(Table) {
 
   -- Sort: Sort the list in place (or return new sorted list)
   sort = function(self, comparator, in_place)
-    local target = in_place and self or List{}
+    local target = in_place and self or List({})
     if not in_place then
       for _, v in ipairs(self) do
         target:insert(v)
@@ -250,12 +268,12 @@ List = class 'List' : extends(Table) {
   -- Group by: Group elements by a key function
   group_by = function(self, key_func)
     local groups = {}
-    local group_order = List{}
+    local group_order = List({})
 
     for i, v in ipairs(self) do
       local key = key_func(v, i)
       if not groups[key] then
-        groups[key] = List{}
+        groups[key] = List({})
         group_order:insert(key)
       end
       groups[key]:insert(v)
@@ -267,11 +285,11 @@ List = class 'List' : extends(Table) {
 
   -- Zip: Combine this list with another list into pairs
   zip = function(self, other)
-    local result = List{}
+    local result = List({})
     local min_len = math.min(#self, #other)
 
     for i = 1, min_len do
-      result:insert({self[i], other[i]})
+      result:insert({ self[i], other[i] })
     end
 
     return result
@@ -279,7 +297,7 @@ List = class 'List' : extends(Table) {
 
   -- Flatten: Flatten a list of lists by one level
   flatten = function(self)
-    local result = List{}
+    local result = List({})
     for _, v in ipairs(self) do
       if type(v) == 'table' then
         for _, inner_v in ipairs(v) do
@@ -295,7 +313,7 @@ List = class 'List' : extends(Table) {
   -- Distinct: Remove duplicate elements
   distinct = function(self, key_func)
     local seen = {}
-    local result = List{}
+    local result = List({})
 
     for i, v in ipairs(self) do
       local key = key_func and key_func(v, i) or v
@@ -355,8 +373,8 @@ List = class 'List' : extends(Table) {
 
   -- Partition: Split list into two based on predicate
   partition = function(self, predicate)
-    local matches = List{}
-    local non_matches = List{}
+    local matches = List({})
+    local non_matches = List({})
 
     for i, v in ipairs(self) do
       if predicate(v, i) then
@@ -375,9 +393,9 @@ List = class 'List' : extends(Table) {
       error('Chunk size must be at least 1', 2)
     end
 
-    local result = List{}
+    local result = List({})
     for i = 1, #self, n do
-      local chunk = List{}
+      local chunk = List({})
       for j = i, math.min(i + n - 1, #self) do
         chunk:insert(self[j])
       end
@@ -389,17 +407,23 @@ List = class 'List' : extends(Table) {
 
   -- Sum: Sum all numeric elements
   sum = function(self)
-    return self:reduce(function(acc, v) return acc + v end, 0)
+    return self:reduce(function(acc, v)
+      return acc + v
+    end, 0)
   end,
 
   -- Product: Multiply all numeric elements
   product = function(self)
-    return self:reduce(function(acc, v) return acc * v end, 1)
+    return self:reduce(function(acc, v)
+      return acc * v
+    end, 1)
   end,
 
   -- Min: Find minimum element
   min = function(self, comparator)
-    if #self == 0 then return nil end
+    if #self == 0 then
+      return nil
+    end
 
     local min_val = self[1]
     for i = 2, #self do
@@ -419,7 +443,9 @@ List = class 'List' : extends(Table) {
 
   -- Max: Find maximum element
   max = function(self, comparator)
-    if #self == 0 then return nil end
+    if #self == 0 then
+      return nil
+    end
 
     local max_val = self[1]
     for i = 2, #self do
@@ -451,6 +477,6 @@ List = class 'List' : extends(Table) {
   is_empty = function(self)
     return #self == 0
   end,
-}
+})
 
 return _M

@@ -3,10 +3,10 @@
 --- Rules for monotonic pitch movement (ascending/descending melodies).
 -- @module musica.generation.rules.monotonic
 
-local z3 = require 'z3'
-local llx = require 'llx'
-local rule_module = require 'musica.generation.rule'
-local direction_module = require 'musica.direction'
+local z3 = require('z3')
+local llx = require('llx')
+local rule_module = require('musica.generation.rule')
+local direction_module = require('musica.direction')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -19,7 +19,7 @@ local Direction = direction_module.Direction
 
 --- Rule requiring pitches to move monotonically (ascending or descending).
 -- @type MonotonicPitchRule
-MonotonicPitchRule = class 'MonotonicPitchRule' : extends(Rule) {
+MonotonicPitchRule = class('MonotonicPitchRule'):extends(Rule)({
   --- Creates a new MonotonicPitchRule.
   -- @tparam MonotonicPitchRule self
   -- @tparam table args Configuration table
@@ -28,7 +28,7 @@ MonotonicPitchRule = class 'MonotonicPitchRule' : extends(Rule) {
   -- @tparam[opt='monotonic'] string args.name Rule name
   __init = function(self, args)
     args = args or {}
-    Rule.__init(self, {name = args.name or 'monotonic'})
+    Rule.__init(self, { name = args.name or 'monotonic' })
     self.direction = args.direction or Direction.up
     self.strict = args.strict ~= false
   end,
@@ -40,24 +40,48 @@ MonotonicPitchRule = class 'MonotonicPitchRule' : extends(Rule) {
   -- @treturn string|nil error message if validation fails
   validate = function(self, figure)
     for i = 2, #figure.notes do
-      local prev = tointeger(figure.notes[i-1].pitch)
+      local prev = tointeger(figure.notes[i - 1].pitch)
       local curr = tointeger(figure.notes[i].pitch)
 
       if self.direction == Direction.up then
         if self.strict and curr <= prev then
-          return false, string.format('Note %d (%s) not strictly ascending from note %d (%s)',
-            i, figure.notes[i].pitch, i-1, figure.notes[i-1].pitch)
+          return false,
+            string.format(
+              'Note %d (%s) not strictly ascending from note %d (%s)',
+              i,
+              figure.notes[i].pitch,
+              i - 1,
+              figure.notes[i - 1].pitch
+            )
         elseif not self.strict and curr < prev then
-          return false, string.format('Note %d (%s) not ascending from note %d (%s)',
-            i, figure.notes[i].pitch, i-1, figure.notes[i-1].pitch)
+          return false,
+            string.format(
+              'Note %d (%s) not ascending from note %d (%s)',
+              i,
+              figure.notes[i].pitch,
+              i - 1,
+              figure.notes[i - 1].pitch
+            )
         end
       else
         if self.strict and curr >= prev then
-          return false, string.format('Note %d (%s) not strictly descending from note %d (%s)',
-            i, figure.notes[i].pitch, i-1, figure.notes[i-1].pitch)
+          return false,
+            string.format(
+              'Note %d (%s) not strictly descending from note %d (%s)',
+              i,
+              figure.notes[i].pitch,
+              i - 1,
+              figure.notes[i - 1].pitch
+            )
         elseif not self.strict and curr > prev then
-          return false, string.format('Note %d (%s) not descending from note %d (%s)',
-            i, figure.notes[i].pitch, i-1, figure.notes[i-1].pitch)
+          return false,
+            string.format(
+              'Note %d (%s) not descending from note %d (%s)',
+              i,
+              figure.notes[i].pitch,
+              i - 1,
+              figure.notes[i - 1].pitch
+            )
         end
       end
     end
@@ -69,11 +93,11 @@ MonotonicPitchRule = class 'MonotonicPitchRule' : extends(Rule) {
   -- @tparam GenerationContext ctx The generation context
   -- @treturn z3.expr Z3 constraint expression
   to_z3 = function(self, ctx)
-    local constraints = List{}
+    local constraints = List({})
     local pitch_vars = ctx:get_pitch_vars()
 
     for i = 2, #pitch_vars do
-      local prev = pitch_vars[i-1]
+      local prev = pitch_vars[i - 1]
       local curr = pitch_vars[i]
 
       if self.direction == Direction.up then
@@ -102,7 +126,7 @@ MonotonicPitchRule = class 'MonotonicPitchRule' : extends(Rule) {
     local strictness = self.strict and 'strict' or 'non-strict'
     return string.format('MonotonicPitchRule{%s, %s}', dir, strictness)
   end,
-}
+})
 
 --- Convenience constructor for ascending pitch rule.
 -- @tparam[opt] table args Configuration (strict, name)

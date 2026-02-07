@@ -1,7 +1,7 @@
 -- Copyright 2024 Alexander Ames <Alexander.Ames@gmail.com>
 
-local core = require 'llx.core'
-local environment = require 'llx.environment'
+local core = require('llx.core')
+local environment = require('llx.environment')
 
 local _ENV, _M = environment.create_module_environment()
 
@@ -30,8 +30,8 @@ function hash_number(value, hash)
 end
 
 function hash_string(value, hash)
-  for i=1, #value do
-    hash = hash_integer(value:sub(i,i):byte(), hash)
+  for i = 1, #value do
+    hash = hash_integer(value:sub(i, i):byte(), hash)
   end
   return hash
 end
@@ -46,13 +46,13 @@ local function get_ordered_keys(value)
   local boolean_keys, number_keys, string_keys, table_keys = {}, {}, {}, {}
   for k, _ in pairs(value) do
     local key_type = type(k)
-    if key_type =='boolean' then
+    if key_type == 'boolean' then
       table.insert(boolean_keys, k)
-    elseif key_type =='number' then
+    elseif key_type == 'number' then
       table.insert(number_keys, k)
-    elseif key_type =='string' then
+    elseif key_type == 'string' then
       table.insert(string_keys, k)
-    elseif key_type =='table' then
+    elseif key_type == 'table' then
       table.insert(table_keys, k)
     else
       error(string.format('type %s not supported', key_type))
@@ -85,15 +85,15 @@ local function hash_error(value, hash)
 end
 
 local hash_functions = {
-  ['nil']=hash_nil,
-  ['boolean']=hash_boolean,
-  ['number']=hash_number,
-  ['string']=hash_string,
-  ['table']=hash_table,
+  ['nil'] = hash_nil,
+  ['boolean'] = hash_boolean,
+  ['number'] = hash_number,
+  ['string'] = hash_string,
+  ['table'] = hash_table,
 
-  ['function']=hash_error,
-  ['userdata']=hash_error,
-  ['thread']=hash_error,
+  ['function'] = hash_error,
+  ['userdata'] = hash_error,
+  ['thread'] = hash_error,
 }
 
 function hash_value(value, hash)

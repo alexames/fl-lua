@@ -4,7 +4,7 @@
 -- Provides utilities for working with musical time signatures.
 -- @module musica.time_signature
 
-local llx = require 'llx'
+local llx = require('llx')
 
 local _ENV, _M = llx.environment.create_module_environment()
 
@@ -12,7 +12,7 @@ local class = llx.class
 
 --- TimeSignature class representing musical time signature.
 -- @type TimeSignature
-TimeSignature = class 'TimeSignature' {
+TimeSignature = class('TimeSignature')({
   --- Constructor.
   -- @function TimeSignature:__init
   -- @tparam TimeSignature self
@@ -24,7 +24,7 @@ TimeSignature = class 'TimeSignature' {
     else
       error('TimeSignature requires numerator and denominator', 2)
     end
-    
+
     -- Validate
     if self.numerator <= 0 then
       error('Numerator must be positive', 2)
@@ -96,11 +96,13 @@ TimeSignature = class 'TimeSignature' {
   describe = function(self)
     local meter_class = self:is_simple() and 'Simple' or 'Compound'
     local meter_type = self:get_meter_type()
-    return string.format('%s %s (%d/%d)', 
-                        meter_class, 
-                        meter_type:gsub('^%l', string.upper),
-                        self.numerator,
-                        self.denominator)
+    return string.format(
+      '%s %s (%d/%d)',
+      meter_class,
+      meter_type:gsub('^%l', string.upper),
+      self.numerator,
+      self.denominator
+    )
   end,
 
   __tostring = function(self)
@@ -108,19 +110,20 @@ TimeSignature = class 'TimeSignature' {
   end,
 
   __eq = function(self, other)
-    return self.numerator == other.numerator and self.denominator == other.denominator
+    return self.numerator == other.numerator
+      and self.denominator == other.denominator
   end,
-}
+})
 
 -- Common time signatures
-common_time = TimeSignature{numerator = 4, denominator = 4}  -- 4/4
-cut_time = TimeSignature{numerator = 2, denominator = 2}     -- 2/2 (alla breve)
-waltz_time = TimeSignature{numerator = 3, denominator = 4}   -- 3/4
-march_time = TimeSignature{numerator = 2, denominator = 4}   -- 2/4
+common_time = TimeSignature({ numerator = 4, denominator = 4 }) -- 4/4
+cut_time = TimeSignature({ numerator = 2, denominator = 2 }) -- 2/2 (alla breve)
+waltz_time = TimeSignature({ numerator = 3, denominator = 4 }) -- 3/4
+march_time = TimeSignature({ numerator = 2, denominator = 4 }) -- 2/4
 
 -- Compound time signatures
-compound_duple = TimeSignature{numerator = 6, denominator = 8}      -- 6/8
-compound_triple = TimeSignature{numerator = 9, denominator = 8}     -- 9/8
-compound_quadruple = TimeSignature{numerator = 12, denominator = 8} -- 12/8
+compound_duple = TimeSignature({ numerator = 6, denominator = 8 }) -- 6/8
+compound_triple = TimeSignature({ numerator = 9, denominator = 8 }) -- 9/8
+compound_quadruple = TimeSignature({ numerator = 12, denominator = 8 }) -- 12/8
 
 return _M

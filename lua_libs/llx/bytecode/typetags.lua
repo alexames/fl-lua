@@ -1,10 +1,10 @@
-local enum = require 'enum'
+local enum = require('enum')
 
 function makevariant(t, v)
   return t.value | (v << 4)
 end
 
-typetags = enum.enum{
+typetags = enum.enum({
   [0] = 'tnil',
   [1] = 'tboolean',
   [2] = 'tlightuserdata',
@@ -14,7 +14,7 @@ typetags = enum.enum{
   [6] = 'tfunction',
   [7] = 'tuserdata',
   [8] = 'tthread',
-}
+})
 
 typetags:insert(makevariant(typetags.tnil, 0), 'vnil')
 
@@ -44,5 +44,5 @@ typetags:insert(makevariant(typetags.tuserdata, 0), 'vuserdata')
 typetags:insert(makevariant(typetags.tthread, 0), 'vthread')
 
 return {
-  typetags = typetags
+  typetags = typetags,
 }
