@@ -93,3 +93,12 @@ add_custom_command(TARGET FL-Lua POST_BUILD
     "$<TARGET_FILE_DIR:FL-Lua>/../Resources/lua_libs"
   COMMENT "Copying Lua libraries to plugin bundle"
 )
+
+# --- Install the .vst3 bundle ---
+install(CODE "
+  file(INSTALL \"${CMAKE_BINARY_DIR}/VST3/\${CMAKE_INSTALL_CONFIG_NAME}/FL-Lua.vst3/\"
+    DESTINATION \"\${CMAKE_INSTALL_PREFIX}/FL-Lua.vst3\")
+")
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/examples/"
+  DESTINATION "examples"
+)
