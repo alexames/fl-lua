@@ -122,6 +122,19 @@ FLLuaProcessor::process(Steinberg::Vst::ProcessData& data) {
     drainMidiEvents(data.outputEvents);
   }
 
+  // Relay log messages to the controller via IMessage
+  std::string logMsg;
+  while (m_logQueue.try_dequeue(logMsg)) {
+    if (auto* msg = allocateMessage()) {
+      msg->setMessageID("LogMessage");
+      msg->getAttributes()->setBinary(
+          "text", logMsg.data(),
+          static_cast<Steinberg::uint32>(logMsg.size()));
+      sendMessage(msg);
+      msg->release();
+    }
+  }
+
   // Output silence on audio bus
   if (data.numOutputs > 0 && data.outputs) {
     for (int ch = 0; ch < data.outputs[0].numChannels; ++ch) {

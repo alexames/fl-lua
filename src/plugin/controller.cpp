@@ -1,5 +1,7 @@
 #include "controller.hpp"
 
+#include <cstring>
+
 #include "base/source/fstreamer.h"
 #include "cids.hpp"
 #include "pluginterfaces/base/ibstream.h"
@@ -62,6 +64,32 @@ void FLLuaController::sendLuaLibsPath(const std::string& path) {
     sendMessage(msg);
     msg->release();
   }
+}
+
+Steinberg::tresult PLUGIN_API
+FLLuaController::notify(Steinberg::Vst::IMessage* message) {
+  if (!message) return Steinberg::kInvalidArgument;
+
+  if (strcmp(message->getMessageID(), "LogMessage") == 0) {
+    const void* data = nullptr;
+    Steinberg::uint32 size = 0;
+    if (message->getAttributes()->getBinary("text", data, size) ==
+        Steinberg::kResultOk) {
+      std::string text(static_cast<const char*>(data), size);
+      std::lock_guard<std::mutex> lock(m_logMutex);
+      m_pendingLogs.push_back(std::move(text));
+    }
+    return Steinberg::kResultOk;
+  }
+
+  return EditController::notify(message);
+}
+
+std::vector<std::string> FLLuaController::drainLogMessages() {
+  std::lock_guard<std::mutex> lock(m_logMutex);
+  std::vector<std::string> logs;
+  logs.swap(m_pendingLogs);
+  return logs;
 }
 
 }  // namespace FLLua

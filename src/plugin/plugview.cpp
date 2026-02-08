@@ -170,6 +170,13 @@ void FLLuaPlugView::renderFrame() {
   ImGui_ImplWin32_NewFrame();
   ImGui::NewFrame();
 
+  // Drain log messages from the controller
+  if (m_controller) {
+    for (auto& msg : m_controller->drainLogMessages()) {
+      m_editor.getConsole().addMessage(msg);
+    }
+  }
+
   // Render the editor as a fullscreen window
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   RECT clientRect;
