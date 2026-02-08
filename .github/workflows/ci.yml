@@ -75,15 +75,14 @@ jobs:
       - name: Zip artifact
         run: cd FL-Lua-vst3-win64 && zip -r ../FL-Lua-vst3-win64.zip .
 
-      - name: Get short SHA
-        id: sha
-        run: echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: build-${{ steps.sha.outputs.short }}
-          name: Build ${{ steps.sha.outputs.short }}
-          body: "Automated build from commit ${{ github.sha }} on main."
-          files: FL-Lua-vst3-win64.zip
-          prerelease: true
+      - name: Update latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release delete latest --yes || true
+          git push origin :refs/tags/latest || true
+          gh release create latest FL-Lua-vst3-win64.zip \
+            --title "Latest Build" \
+            --notes "Automated build from [\`${GITHUB_SHA::7}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) on main." \
+            --prerelease
