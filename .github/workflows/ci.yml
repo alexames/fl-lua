@@ -46,3 +46,44 @@ jobs:
           test -d "build/VST3/Release/FL-Lua.vst3/Contents/Resources/lua_libs/musica"
           test -d "build/VST3/Release/FL-Lua.vst3/Contents/Resources/lua_libs/lua-midi"
           echo "Bundle structure verified."
+
+      - name: Install
+        if: github.event_name == 'push'
+        run: cmake --install build --config Release --prefix install
+
+      - name: Upload artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FL-Lua-vst3-win64
+          path: install/
+          if-no-files-found: error
+
+  release:
+    name: Release
+    if: github.event_name == 'push'
+    needs: [style, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: FL-Lua-vst3-win64
+          path: FL-Lua-vst3-win64
+
+      - name: Zip artifact
+        run: cd FL-Lua-vst3-win64 && zip -r ../FL-Lua-vst3-win64.zip .
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ steps.sha.outputs.short }}
+          name: Build ${{ steps.sha.outputs.short }}
+          body: "Automated build from commit ${{ github.sha }} on main."
+          files: FL-Lua-vst3-win64.zip
+          prerelease: true
