@@ -128,8 +128,7 @@ FLLuaProcessor::process(Steinberg::Vst::ProcessData& data) {
     if (auto* msg = allocateMessage()) {
       msg->setMessageID("LogMessage");
       msg->getAttributes()->setBinary(
-          "text", logMsg.data(),
-          static_cast<Steinberg::uint32>(logMsg.size()));
+          "text", logMsg.data(), static_cast<Steinberg::uint32>(logMsg.size()));
       sendMessage(msg);
       msg->release();
     }
