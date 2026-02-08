@@ -147,6 +147,12 @@ LRESULT CALLBACK FLLuaPlugView::wndProc(HWND hwnd, UINT msg, WPARAM wParam,
                         reinterpret_cast<LONG_PTR>(cs->lpCreateParams));
       return 0;
     }
+    case WM_MOUSEACTIVATE:
+      SetFocus(hwnd);
+      return MA_ACTIVATE;
+    case WM_LBUTTONDOWN:
+      SetFocus(hwnd);
+      break;
     case WM_TIMER:
       if (view) view->renderFrame();
       return 0;
